@@ -2,118 +2,194 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
 <title>Trading Journal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
-/* Layout: report tables laid out like the Excel Dashboard sheet — navy title bands, tinted column headers */
+/* Layout: header → sticky filter bar → 8 stat cards → report tables (Excel dashboard layout) → trade log */
 :root{
   color-scheme: light;
-  --page:#f4f6f9; --surface:#ffffff; --ink:#111827; --ink-2:#4b5563; --muted:#8a93a3;
-  --line:#e3e7ee; --band:#1f3864; --band-ink:#ffffff; --colhead:#dce6f1; --colhead-ink:#111827;
-  --pos:#1a7f43; --neg:#c62828; --zero:#8a93a3;
-  --good-fill:#d6efdc; --good-ink:#14592f; --bad-fill:#f7d7d7; --bad-ink:#8e1c1c;
-  --border:rgba(17,24,39,.10); --hover:#f3f6fa;
+  --page:#eef1f6; --surface:#ffffff; --surface-2:#f6f8fb; --ink:#0f1726; --ink-2:#445064; --muted:#7d889b;
+  --line:#e4e8ef; --border:#dde2ea; --shadow:0 1px 2px rgba(15,23,38,.05),0 4px 14px rgba(15,23,38,.04);
+  --navy:#1f3864; --navy-2:#2b4a80; --navy-ink:#ffffff; --head:#eaf0f8; --head-ink:#2a3a55;
+  --pos:#157347; --neg:#c42b2b; --zero:#97a0ae;
+  --good-fill:#dcf1e3; --good-ink:#11593a; --bad-fill:#fadcdc; --bad-ink:#8f1d1d;
+  --chip:#ffffff; --chip-on:#1f3864; --chip-on-ink:#ffffff; --hover:#f2f5fa;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif; --mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
     color-scheme: dark;
-    --page:#0b0d11; --surface:#14171d; --ink:#eef1f5; --ink-2:#c4cad4; --muted:#8a93a3;
-    --line:#262b34; --band:#1f3864; --band-ink:#ffffff; --colhead:#dce6f1; --colhead-ink:#111827;
-    --pos:#4caf6e; --neg:#ef5350; --zero:#8a93a3;
-    --good-fill:#4f6b2a; --good-ink:#ffffff; --bad-fill:#6e2626; --bad-ink:#ffffff;
-    --border:rgba(255,255,255,.10); --hover:#1b1f27;
+    --page:#0a0d13; --surface:#121722; --surface-2:#171d2a; --ink:#e9edf4; --ink-2:#b5bfce; --muted:#7f8a9c;
+    --line:#212938; --border:#252e3f; --shadow:none;
+    --navy:#1f3864; --navy-2:#2b4a80; --navy-ink:#ffffff; --head:#1a2232; --head-ink:#c9d4e6;
+    --pos:#43c07a; --neg:#f06262; --zero:#6f7a8c;
+    --good-fill:#1e4a2f; --good-ink:#c9f2d8; --bad-fill:#5a2020; --bad-ink:#ffd6d6;
+    --chip:#151b27; --chip-on:#e9edf4; --chip-on-ink:#0a0d13; --hover:#1a2130;
   }
 }
 :root[data-theme="dark"]{
   color-scheme: dark;
-  --page:#0b0d11; --surface:#14171d; --ink:#eef1f5; --ink-2:#c4cad4; --muted:#8a93a3;
-  --line:#262b34; --band:#1f3864; --band-ink:#ffffff; --colhead:#dce6f1; --colhead-ink:#111827;
-  --pos:#4caf6e; --neg:#ef5350; --zero:#8a93a3;
-  --good-fill:#4f6b2a; --good-ink:#ffffff; --bad-fill:#6e2626; --bad-ink:#ffffff;
-  --border:rgba(255,255,255,.10); --hover:#1b1f27;
+  --page:#0a0d13; --surface:#121722; --surface-2:#171d2a; --ink:#e9edf4; --ink-2:#b5bfce; --muted:#7f8a9c;
+  --line:#212938; --border:#252e3f; --shadow:none;
+  --navy:#1f3864; --navy-2:#2b4a80; --navy-ink:#ffffff; --head:#1a2232; --head-ink:#c9d4e6;
+  --pos:#43c07a; --neg:#f06262; --zero:#6f7a8c;
+  --good-fill:#1e4a2f; --good-ink:#c9f2d8; --bad-fill:#5a2020; --bad-ink:#ffd6d6;
+  --chip:#151b27; --chip-on:#e9edf4; --chip-on-ink:#0a0d13; --hover:#1a2130;
 }
 *{box-sizing:border-box}
 html,body{margin:0}
-body{background:var(--page);color:var(--ink);font:14px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
-.wrap{max-width:1280px;margin:0 auto;padding-block:24px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 24px;margin-bottom:20px}
-h1{font-size:22px;font-weight:650;margin:0;letter-spacing:-.01em}
-.sub{color:var(--ink-2);font-size:13px;margin-top:4px}
-.sub .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--muted);margin-right:6px;vertical-align:1px}
-.sub .dot.ok{background:#16a34a}.sub .dot.err{background:#dc2626}
+body{background:var(--page);color:var(--ink);font:14px/1.45 var(--sans);-webkit-font-smoothing:antialiased}
+.wrap{max-width:1320px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+/* header */
+.hero{background:var(--navy);color:var(--navy-ink)}
+.hero .wrap{padding-block:22px 22px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px 24px}
+.brand{display:flex;align-items:center;gap:14px;min-width:0}
+.mark{width:40px;height:40px;border-radius:10px;background:rgba(255,255,255,.12);display:grid;place-items:center;flex:none}
+h1{font-size:21px;font-weight:600;margin:0;letter-spacing:-.01em}
+.sub{font-size:12.5px;opacity:.8;margin-top:2px}
+.sub .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#9aa6b8;margin-right:6px;vertical-align:1px}
+.sub .dot.ok{background:#4ade80}.sub .dot.err{background:#f87171}
 .tools{display:flex;gap:8px;flex-wrap:wrap}
-button,select{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:7px 11px;cursor:pointer}
-button:hover{background:var(--hover)}
-button:focus-visible,select:focus-visible,a:focus-visible{outline:2px solid var(--band);outline-offset:2px}
+.tools button{font:inherit;font-size:13px;font-weight:500;color:var(--navy-ink);background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.22);border-radius:8px;padding:7px 12px;cursor:pointer}
+.tools button:hover{background:rgba(255,255,255,.16)}
+
+/* filter bar */
+.filterbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:color-mix(in srgb,var(--page) 88%,transparent);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.filterbar .wrap{padding-block:10px;display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center}
+.fg{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.fg > span{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.seg{display:inline-flex;background:var(--chip);border:1px solid var(--border);border-radius:9px;padding:2px;gap:2px;flex-wrap:wrap}
+.seg button{font:inherit;font-size:13px;font-weight:500;border:0;background:transparent;color:var(--ink-2);padding:5px 11px;border-radius:7px;cursor:pointer;white-space:nowrap}
+.seg button:hover{background:var(--hover)}
+.seg button[aria-pressed="true"]{background:var(--chip-on);color:var(--chip-on-ink)}
+.fb-end{margin-left:auto;display:flex;gap:10px;align-items:center}
+.count{font-size:12.5px;color:var(--muted);white-space:nowrap}
+.linkbtn{font:inherit;font-size:12.5px;font-weight:600;color:var(--ink-2);background:none;border:0;padding:4px 2px;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+button:focus-visible,select:focus-visible,a:focus-visible{outline:2px solid var(--navy-2);outline-offset:2px}
+
+main{padding-block:20px 56px;display:grid;gap:18px}
+main > *,#main > *{min-width:0}
+#main{display:grid;gap:18px;min-width:0}
+.banner{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:9px 14px;font-size:13px;color:var(--ink-2);display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}
 .banner[hidden]{display:none!important}
-.banner{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:8px 12px;font-size:13px;color:var(--ink-2);margin-bottom:16px;display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}
+.banner button{font:inherit;font-size:12.5px;font-weight:600;border:1px solid var(--border);background:var(--surface-2);color:var(--ink);border-radius:7px;padding:5px 10px;cursor:pointer}
 
-.grid{display:grid;gap:16px;margin-bottom:16px;align-items:start}
-.row1{grid-template-columns:minmax(0,1.45fr) minmax(0,1fr) minmax(0,.8fr)}
+/* stat cards */
+.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:15px 16px 14px;box-shadow:var(--shadow);min-width:0;display:grid;gap:4px;align-content:start}
+.card .k{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.card .v{font-family:var(--mono);font-size:26px;font-weight:500;letter-spacing:-.02em;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card .h{font-size:12.5px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.meter{position:relative;height:6px;border-radius:3px;background:var(--line);margin-top:6px}
+.meter i{position:absolute;inset:0 auto 0 0;border-radius:3px}
+.meter b{position:absolute;top:-4px;width:2px;height:14px;background:var(--ink-2);border-radius:1px}
+.pos{color:var(--pos)}.neg{color:var(--neg)}.zero{color:var(--zero)}.muted{color:var(--muted)}
+
+/* report tables */
+.grid{display:grid;gap:18px;align-items:start}
+.row1{grid-template-columns:minmax(0,1.5fr) minmax(0,1fr) minmax(0,.85fr)}
 .row2{grid-template-columns:repeat(2,minmax(0,1fr))}
-@media (max-width:1100px){.row1{grid-template-columns:repeat(2,minmax(0,1fr))}.row1 .monthly{grid-column:1/-1}}
-@media (max-width:700px){.row1,.row2{grid-template-columns:minmax(0,1fr)}}
-
-.tbl{background:var(--surface);border:1px solid var(--border);border-radius:6px;overflow:hidden;min-width:0}
-.tbl .title{background:var(--band);color:var(--band-ink);font-weight:650;font-size:13.5px;padding:7px 12px;display:flex;justify-content:space-between;align-items:center;gap:8px}
-.tbl .title select{background:transparent;color:var(--band-ink);border-color:rgba(255,255,255,.35);padding:2px 6px;font-size:12.5px}
-.tbl .title select option{color:#111827}
+.tbl{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:var(--shadow);min-width:0}
+.tbl .title{background:var(--navy);color:var(--navy-ink);padding:10px 14px;display:flex;justify-content:space-between;align-items:center;gap:10px;min-height:42px}
+.tbl .title h2{font-size:13.5px;font-weight:600;margin:0}
+.scope{font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;padding:2px 8px;border-radius:999px;background:rgba(255,255,255,.14)}
+.tbl .title select{font:inherit;font-size:12.5px;color:var(--navy-ink);background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.28);border-radius:6px;padding:2px 6px}
+.tbl .title select option{color:#0f1726;background:#fff}
 .scroll{overflow-x:auto}
 table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
-th{background:var(--colhead);color:var(--colhead-ink);font-size:12.5px;font-weight:650;padding:5px 10px;text-align:center;white-space:nowrap}
-td{padding:4px 10px;text-align:center;white-space:nowrap;border-bottom:1px solid var(--line)}
+th{background:var(--head);color:var(--head-ink);font-size:11.5px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;padding:8px 12px;text-align:center;white-space:nowrap;border-bottom:1px solid var(--line)}
+td{padding:7px 12px;text-align:center;white-space:nowrap;border-bottom:1px solid var(--line)}
+tbody tr:last-child td{border-bottom:0}
 th:first-child,td:first-child{text-align:left}
-td.m{text-align:right;padding-right:16px}
-th.m{text-align:right;padding-right:16px}
+th.m,td.m{text-align:right}
+td.r{font-family:var(--mono);font-size:13px}
 tbody tr:hover td{background:var(--hover)}
-tr.total td{font-weight:700;border-top:2px solid var(--ink-2);border-bottom:0}
-.pos{color:var(--pos)}.neg{color:var(--neg)}.zero{color:var(--zero)}
-.muted{color:var(--muted)}
-td.good{background:var(--good-fill);color:var(--good-ink)}
-td.bad{background:var(--bad-fill);color:var(--bad-ink)}
-.summary td{text-align:left}
-.summary td:last-child{text-align:right;font-weight:650}
+tfoot td{font-weight:700;border-top:2px solid var(--ink-2);border-bottom:0;background:var(--surface-2)}
+td.wr{padding:4px 8px}
+td.wr span{display:inline-block;min-width:62px;padding:3px 8px;border-radius:6px;font-weight:600}
+td.wr .good{background:var(--good-fill);color:var(--good-ink)}
+td.wr .bad{background:var(--bad-fill);color:var(--bad-ink)}
+.summary td{text-align:left;padding:7.5px 14px}
+.summary td:last-child{text-align:right;font-weight:600}
+.summary td.wr{text-align:right;padding:4px 10px}
+.none{color:var(--muted);text-align:center!important;padding:18px}
 
-.log .title{justify-content:space-between}
-.log td{font-size:13px}
-.log td.notes{white-space:normal;min-width:160px;text-align:left;color:var(--ink-2)}
+/* trade log */
 .log th{cursor:pointer;user-select:none}
-.log td.l,.log th.l{text-align:left}
-.pill{display:inline-block;font-size:11px;font-weight:700;padding:1px 8px;border-radius:999px;border:1px solid var(--border)}
-.pill.TP{color:var(--pos)}.pill.SL{color:var(--neg)}.pill.BE{color:var(--muted)}.pill.OPEN{color:var(--ink-2)}
-a{color:var(--pos)}
+.log td{font-size:13px}
+.log .l{text-align:left}
+.log td.notes{white-space:normal;min-width:180px;color:var(--ink-2)}
 .logwrap{max-height:560px;overflow:auto}
 .log thead th{position:sticky;top:0;z-index:1}
+.pill{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.03em;padding:2px 9px;border-radius:999px}
+.pill.TP{background:var(--good-fill);color:var(--good-ink)}
+.pill.SL{background:var(--bad-fill);color:var(--bad-ink)}
+.pill.BE,.pill.OPEN{background:var(--line);color:var(--ink-2)}
+.log a{color:var(--navy-2);font-weight:600;text-decoration:none}
+:root[data-theme="dark"] .log a{color:#8fb0ea}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .log a{color:#8fb0ea}}
+.log a:hover{text-decoration:underline}
 
-.empty,.error{background:var(--surface);border:1px dashed var(--muted);border-radius:10px;padding:40px 20px;text-align:center;color:var(--ink-2)}
+.empty,.error{background:var(--surface);border:1px dashed var(--border);border-radius:12px;padding:44px 20px;text-align:center;color:var(--ink-2)}
 .error{border-color:var(--neg)}
 .empty h2,.error h2{color:var(--ink);font-size:16px;margin:0 0 6px}
-code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;background:var(--hover);padding:1px 5px;border-radius:4px}
-.drop{position:fixed;inset:0;background:rgba(31,56,100,.15);border:3px dashed var(--band);display:none;align-items:center;justify-content:center;font-size:18px;font-weight:600;z-index:10}
+code{font-family:var(--mono);font-size:12px;background:var(--surface-2);border:1px solid var(--line);padding:1px 5px;border-radius:4px}
+.drop{position:fixed;inset:0;background:rgba(31,56,100,.18);border:3px dashed var(--navy-2);display:none;align-items:center;justify-content:center;font-size:18px;font-weight:600;z-index:20;color:var(--ink)}
 .drop.on{display:flex}
-footer{margin-top:24px;font-size:12px;color:var(--muted)}
+footer{font-size:12px;color:var(--muted);padding-bottom:32px}
+
+@media (max-width:1100px){.row1{grid-template-columns:repeat(2,minmax(0,1fr))}.row1 .monthly{grid-column:1/-1}}
+@media (max-width:860px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))}.fb-end{margin-left:0}}
+@media (max-width:640px){.row1,.row2{grid-template-columns:minmax(0,1fr)}.card .v{font-size:21px}h1{font-size:19px}}
+@media (prefers-reduced-motion:no-preference){.seg button,.tools button{transition:background .15s,color .15s}}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header class="top">
-    <div>
-      <h1>Trading Journal</h1>
-      <div class="sub" id="status"><span class="dot"></span>Loading trades…</div>
+<header class="hero">
+  <div class="wrap">
+    <div class="brand">
+      <div class="mark" aria-hidden="true">
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="3" y="9" width="3" height="8" rx="1" fill="#ffffff" opacity=".55"/><rect x="9.5" y="5" width="3" height="12" rx="1" fill="#ffffff"/><rect x="16" y="2" width="3" height="15" rx="1" fill="#ffffff" opacity=".8"/><path d="M2 20h18" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" opacity=".5"/></svg>
+      </div>
+      <div>
+        <h1>Trading Journal</h1>
+        <div class="sub" id="status"><span class="dot"></span>Loading trades…</div>
+      </div>
     </div>
     <div class="tools">
       <button id="reload" type="button" title="Re-read trades.xlsx">↻ Refresh</button>
       <button id="pick" type="button" title="Preview a local file without uploading it">Open file…</button>
       <input type="file" id="file" accept=".xlsx,.xls" hidden>
-      <button id="theme" type="button" title="Toggle light/dark">◐ Theme</button>
+      <button id="theme" type="button" title="Switch light / dark">◐ Theme</button>
     </div>
-  </header>
+  </div>
+</header>
 
-  <div class="banner" id="localBanner" hidden><span>Previewing a local file. This view isn't published; push the file to GitHub to update the site.</span><button id="backRemote" type="button">Back to published data</button></div>
+<nav class="filterbar" aria-label="Filters">
+  <div class="wrap">
+    <div class="fg"><span>Market</span><div class="seg" id="fMarket"></div></div>
+    <div class="fg"><span>Period</span><div class="seg" id="fRange">
+      <button type="button" data-v="all">All</button><button type="button" data-v="ytd">YTD</button><button type="button" data-v="90">90D</button><button type="button" data-v="30">30D</button><button type="button" data-v="mtd">This month</button>
+    </div></div>
+    <div class="fg"><span>Direction</span><div class="seg" id="fDir">
+      <button type="button" data-v="all">Both</button><button type="button" data-v="BUY">Buy</button><button type="button" data-v="SELL">Sell</button>
+    </div></div>
+    <div class="fg"><span>Session</span><div class="seg" id="fSession"></div></div>
+    <div class="fb-end"><span class="count" id="count"></span><button type="button" class="linkbtn" id="resetF" hidden>Reset filters</button></div>
+  </div>
+</nav>
 
-  <div id="main"></div>
+<div class="wrap">
+  <main>
+    <div class="banner" id="localBanner" hidden><span>Previewing a local file. This view isn't published; push the file to GitHub to update the site.</span><button id="backRemote" type="button">Back to published data</button></div>
+    <div id="main"></div>
+  </main>
   <footer id="foot"></footer>
 </div>
 <div class="drop" id="drop">Drop your journal (.xlsx) to preview it</div>
@@ -131,9 +207,10 @@ const CONFIG = {
 /* ==================================================================== */
 
 const $ = s => document.querySelector(s);
-const state = { trades: [], open: 0, source: "remote", year: null, sort: { key: "no", dir: -1 } };
+const DEFAULT_F = { market: "all", range: "all", dir: "all", session: "all" };
+const state = { trades: [], source: "remote", year: null, f: { ...DEFAULT_F }, sort: { key: "no", dir: -1 } };
+try { Object.assign(state.f, JSON.parse(localStorage.getItem("tj-filters") || "{}")); } catch (e) {}
 const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-const DAYS = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 
 /* ---------- theme ---------- */
 try { const t = localStorage.getItem("tj-theme"); if (t) document.documentElement.setAttribute("data-theme", t); } catch (e) {}
@@ -145,14 +222,14 @@ $("#theme").onclick = () => {
 };
 
 /* ---------- formatting ---------- */
-const fmtR = v => (v < 0 ? "-" : "") + Math.abs(v).toFixed(2) + "R";
-const rCls = v => v > 0.0000001 ? "pos" : v < -0.0000001 ? "neg" : "zero";
+const fmtR = (v, sign) => (v < -1e-9 ? "−" : sign && v > 1e-9 ? "+" : "") + Math.abs(v).toFixed(2) + "R";
+const rCls = v => v > 1e-9 ? "pos" : v < -1e-9 ? "neg" : "zero";
 const pct = v => v == null || !isFinite(v) ? "" : (v * 100).toFixed(1) + "%";
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const pad = n => String(n).padStart(2, "0");
 const ymd = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 const bePct = () => Math.abs(CONFIG.rValues.SL) / (CONFIG.rValues.TP + Math.abs(CONFIG.rValues.SL));
-$("#foot").innerHTML = `Reads <code id="srcName">${CONFIG.file}</code> on every load and every ${CONFIG.refreshMinutes} minutes. TP = +${CONFIG.rValues.TP}R, SL = ${CONFIG.rValues.SL}R, BE = 0R. Win rate = wins ÷ closed trades. Rows with a date but no result count as open trades.`;
+$("#foot").innerHTML = `Reads <code id="srcName">${CONFIG.file}</code> on every load and every ${CONFIG.refreshMinutes} minutes. TP = +${CONFIG.rValues.TP}R, SL = ${CONFIG.rValues.SL}R, BE = 0R. Win rate = wins ÷ closed trades. A row with a date but no result counts as an open trade.`;
 
 /* ---------- parsing ---------- */
 const ALIASES = {
@@ -187,13 +264,12 @@ function parseWorkbook(buf) {
   const range = XLSX.utils.decode_range(ws["!ref"]);
   const g = (r, k) => col[k] == null ? null : r[col[k]];
   const rv = Object.fromEntries(Object.entries(CONFIG.rValues).map(([k, v]) => [k.toUpperCase(), v]));
-  const out = []; let open = 0;
+  const out = [];
   rows.slice(hi + 1).forEach((r, i) => {
     const d = toDate(g(r, "date")); if (!d) return;
     const res = String(g(r, "result") ?? "").trim().toUpperCase();
     const isOpen = !res || res === "OPEN";
     if (!isOpen && !(res in rv)) return;
-    if (isOpen) open++;
     const excelRow = range.s.r + hi + 2 + i;
     let shot = null;
     if (col.screenshot != null) {
@@ -216,7 +292,7 @@ function parseWorkbook(buf) {
     });
   });
   out.sort((a, b) => a.date - b.date || a.no - b.no);
-  return { trades: out, open };
+  return out;
 }
 
 /* ---------- loading ---------- */
@@ -228,7 +304,7 @@ async function loadRemote() {
     const lm = res.headers.get("last-modified");
     apply(parseWorkbook(await res.arrayBuffer()));
     state.source = "remote"; $("#localBanner").hidden = true; $("#srcName").textContent = CONFIG.file;
-    setStatus(`${state.trades.length} trades · ${lm ? "file updated " + new Date(lm).toLocaleString() : "loaded " + new Date().toLocaleTimeString()}`, "ok");
+    setStatus(`${state.trades.length} trades · ${lm ? "updated " + new Date(lm).toLocaleString() : "loaded " + new Date().toLocaleTimeString()}`, "ok");
   } catch (err) {
     setStatus("Couldn't load data", "err");
     if (location.protocol === "file:") err = new Error("Browsers block reading files when the page is opened straight from disk. Use “Open file…” to preview, or view the published GitHub Pages site.");
@@ -246,12 +322,7 @@ function loadLocal(file) {
   };
   fr.readAsArrayBuffer(file);
 }
-function apply({ trades, open }) {
-  state.trades = trades; state.open = open;
-  const years = yearsInData();
-  if (!years.includes(state.year)) state.year = years.length ? years[years.length - 1] : new Date().getFullYear();
-  render();
-}
+function apply(trades) { state.trades = trades; buildFilters(); render(); }
 function setStatus(t, kind) { $("#status").innerHTML = `<span class="dot ${kind || ""}"></span>${esc(t)}`; }
 $("#reload").onclick = () => { if (state.source === "remote") loadRemote(); };
 $("#backRemote").onclick = () => loadRemote();
@@ -264,30 +335,71 @@ addEventListener("dragover", e => e.preventDefault());
 addEventListener("drop", e => { e.preventDefault(); dragN = 0; $("#drop").classList.remove("on"); const f = e.dataTransfer.files[0]; if (f) loadLocal(f); });
 setInterval(() => { if (state.source === "remote" && !document.hidden) loadRemote(); }, CONFIG.refreshMinutes * 60000);
 
+/* ---------- filters ---------- */
+function segButtons(id, values, key, allLabel) {
+  if (!values.includes(state.f[key]) && state.f[key] !== "all") state.f[key] = "all";
+  $(id).innerHTML = [["all", allLabel]].concat(values.map(v => [v, v]))
+    .map(([v, l]) => `<button type="button" data-v="${esc(v)}">${esc(l)}</button>`).join("");
+}
+function buildFilters() {
+  const uniq = k => [...new Set(state.trades.map(t => t[k]).filter(v => v && v !== "—"))];
+  const order = ["Asia", "London", "New York"];
+  segButtons("#fMarket", uniq("market").sort(), "market", "All");
+  segButtons("#fSession", uniq("session").sort((a, b) => ((order.indexOf(a) + 1) || 99) - ((order.indexOf(b) + 1) || 99) || a.localeCompare(b)), "session", "All");
+  syncFilterUI();
+}
+function syncFilterUI() {
+  [["#fMarket", "market"], ["#fRange", "range"], ["#fDir", "dir"], ["#fSession", "session"]].forEach(([id, k]) =>
+    $(id).querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", b.dataset.v === state.f[k])));
+  $("#resetF").hidden = isAll();
+}
+[["#fMarket", "market"], ["#fRange", "range"], ["#fDir", "dir"], ["#fSession", "session"]].forEach(([id, k]) =>
+  $(id).addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; state.f[k] = b.dataset.v; saveF(); syncFilterUI(); render(); }));
+$("#resetF").onclick = () => { state.f = { ...DEFAULT_F }; saveF(); syncFilterUI(); render(); };
+function saveF() { try { localStorage.setItem("tj-filters", JSON.stringify(state.f)); } catch (e) {} }
+const isAll = () => Object.keys(DEFAULT_F).every(k => state.f[k] === "all");
+function filtered() {
+  const now = new Date(); let from = null; const f = state.f;
+  if (f.range === "ytd") from = new Date(now.getFullYear(), 0, 1);
+  else if (f.range === "mtd") from = new Date(now.getFullYear(), now.getMonth(), 1);
+  else if (f.range === "30" || f.range === "90") { from = new Date(now); from.setHours(0, 0, 0, 0); from.setDate(from.getDate() - (+f.range) + 1); }
+  return state.trades.filter(t => (f.market === "all" || t.market === f.market) && (f.dir === "all" || t.direction === f.dir)
+    && (f.session === "all" || t.session === f.session) && (!from || t.date >= from));
+}
+
 /* ---------- stats ---------- */
 function stats(ts) {
   const c = ts.filter(t => t.closed);
   const wins = c.filter(t => t.result === "TP").length, losses = c.filter(t => t.result === "SL").length, be = c.filter(t => t.result === "BE").length;
   const gw = c.filter(t => t.r > 0).reduce((s, t) => s + t.r, 0), gl = -c.filter(t => t.r < 0).reduce((s, t) => s + t.r, 0);
-  let curW = 0, curL = 0, maxW = 0, maxL = 0;
+  let curW = 0, curL = 0, maxW = 0, maxL = 0, eq = 0, peak = 0, maxDD = 0;
   for (const t of c) {
+    eq += t.r; peak = Math.max(peak, eq); maxDD = Math.max(maxDD, peak - eq);
     if (t.result === "TP") { curW++; curL = 0; } else if (t.result === "SL") { curL++; curW = 0; }
     maxW = Math.max(maxW, curW); maxL = Math.max(maxL, curL);
   }
-  return { n: c.length, wins, losses, be, net: gw - gl, gw, gl,
+  return { n: c.length, open: ts.length - c.length, wins, losses, be, net: gw - gl, gw, gl,
     winRate: c.length ? wins / c.length : null, exp: c.length ? (gw - gl) / c.length : null,
-    pf: gl > 0 ? gw / gl : (gw > 0 ? Infinity : null), maxW, maxL };
+    pf: gl > 0 ? gw / gl : (gw > 0 ? Infinity : null), maxW, maxL, maxDD };
 }
-const yearsInData = () => [...new Set(state.trades.filter(t => t.closed).map(t => t.date.getFullYear()))].sort();
+const wrCell = (wr, tag = "td") => wr == null ? `<${tag} class="wr"></${tag}>` : `<${tag} class="wr"><span class="${wr >= bePct() ? "good" : "bad"}">${pct(wr)}</span></${tag}>`;
 
 /* ---------- render ---------- */
 function render() {
   const main = $("#main");
   if (!state.trades.length) {
-    main.innerHTML = `<div class="empty"><h2>No trades yet</h2><div>Log your first trade in <code>${esc(CONFIG.file)}</code> (Date and Result), save, and push it to GitHub.</div></div>`;
+    $("#count").textContent = "";
+    if (!$("#status .dot.err")) main.innerHTML = `<div class="empty"><h2>No trades yet</h2><div>Log your first trade in <code>${esc(CONFIG.file)}</code> (Date and Result), save, and push it to GitHub.</div></div>`;
     return;
   }
+  const ts = filtered();
+  $("#count").textContent = `${ts.length} of ${state.trades.length} trades`;
+  if (!ts.length) { main.innerHTML = `<div class="empty"><h2>No trades match these filters</h2><div>Try a wider period, or reset the filters.</div></div>`; return; }
+  const years = [...new Set(ts.filter(t => t.closed).map(t => t.date.getFullYear()))].sort();
+  if (!years.includes(state.year)) state.year = years.length ? years[years.length - 1] : new Date().getFullYear();
+
   main.innerHTML = `
+    <section class="cards" id="cards"></section>
     <section class="grid row1">
       <div class="tbl monthly" id="tMonthly"></div>
       <div class="tbl" id="tCum"></div>
@@ -297,94 +409,117 @@ function render() {
       <div class="tbl" id="tDir"></div>
       <div class="tbl" id="tMarket"></div>
       <div class="tbl" id="tSession"></div>
+      <div class="tbl" id="tSetup"></div>
     </section>
     <section class="tbl log" id="tLog"></section>`;
-  renderMonthly(); renderCumulative(); renderSummary();
-  renderGroup("#tDir", "Performance by Direction (all-time)", "Direction", "direction", ["BUY", "SELL"]);
-  renderGroup("#tMarket", "Performance by Market (all-time)", "Market", "market");
-  renderGroup("#tSession", "Performance by Session (all-time)", "Session", "session", ["Asia", "London", "New York"]);
-  renderLog();
+  renderCards(ts); renderMonthly(ts, years); renderCumulative(ts, years); renderSummary(ts);
+  renderGroup(ts, "#tDir", "Performance by Direction", "Direction", "direction", ["BUY", "SELL"]);
+  renderGroup(ts, "#tMarket", "Performance by Market", "Market", "market");
+  renderGroup(ts, "#tSession", "Performance by Session", "Session", "session", ["Asia", "London", "New York"]);
+  renderGroup(ts, "#tSetup", "Performance by Setup", "Setup", "setup");
+  renderLog(ts);
 }
-const dash = n => n ? n : "-";
-function renderMonthly() {
-  const years = yearsInData(); const y = state.year;
-  const ts = state.trades.filter(t => t.date.getFullYear() === y);
-  const be = bePct();
+const scope = () => `<span class="scope">${isAll() ? "All-time" : "Filtered"}</span>`;
+
+function renderCards(ts) {
+  const s = stats(ts), be = bePct();
+  const byM = new Map(); ts.filter(t => t.closed).forEach(t => { const k = t.date.getFullYear() * 12 + t.date.getMonth(); byM.set(k, (byM.get(k) || 0) + t.r); });
+  const ms = [...byM.entries()]; const best = ms.length ? ms.reduce((a, b) => b[1] > a[1] ? b : a) : null, worst = ms.length ? ms.reduce((a, b) => b[1] < a[1] ? b : a) : null;
+  const mName = k => MONTHS[k % 12].slice(0, 3) + " " + String(Math.floor(k / 12)).slice(2);
+  const edge = s.winRate == null ? null : s.winRate - be;
+  const pf = s.pf == null ? "—" : s.pf === Infinity ? "∞" : s.pf.toFixed(2) + "x";
+  const wrW = s.winRate == null ? 0 : Math.min(100, s.winRate * 100);
+  const card = (k, v, cls, h, extra = "") => `<div class="card"><div class="k">${k}</div><div class="v ${cls}">${v}</div><div class="h">${h || "&nbsp;"}</div>${extra}</div>`;
+  $("#cards").innerHTML = [
+    card("Net result", fmtR(s.net, true), rCls(s.net), `${s.n} closed trade${s.n === 1 ? "" : "s"}${s.open ? ` · ${s.open} open` : ""}`),
+    card("Win rate", pct(s.winRate) || "—", edge == null ? "" : edge >= 0 ? "pos" : "neg", `${s.wins} TP · ${s.losses} SL · ${s.be} BE`,
+      `<div class="meter" title="Tick marks the ${pct(be)} break-even win rate"><i style="width:${wrW}%;background:var(${edge != null && edge >= 0 ? "--pos" : "--neg"})"></i><b style="left:calc(${be * 100}% - 1px)"></b></div>`),
+    card("Edge over break-even", edge == null ? "—" : (edge >= 0 ? "+" : "−") + Math.abs(edge * 100).toFixed(1) + " pts", edge == null ? "" : edge >= 0 ? "pos" : "neg", `break-even is ${pct(be)} at 1:${CONFIG.rValues.TP}`),
+    card("Expectancy", s.exp == null ? "—" : fmtR(s.exp, true), s.exp == null ? "" : rCls(s.exp), "average R per closed trade"),
+    card("Profit factor", pf, s.pf == null ? "" : s.pf >= 1 ? "pos" : "neg", `${fmtR(s.gw)} won · ${fmtR(s.gl)} lost`),
+    card("Max drawdown", s.maxDD ? fmtR(-s.maxDD) : "0.00R", s.maxDD ? "neg" : "zero", "peak-to-trough, closed trades"),
+    card("Best / worst month", best ? `${fmtR(best[1], true)} / ${fmtR(worst[1], true)}` : "—", "", best ? `${mName(best[0])} · ${mName(worst[0])}` : ""),
+    card("Streaks", `${s.maxW}W / ${s.maxL}L`, "", "longest TP / SL runs")
+  ].join("");
+}
+const dash = n => n ? n : "–";
+function renderMonthly(ts, years) {
+  const y = state.year, yt = ts.filter(t => t.date.getFullYear() === y), be = bePct();
   const rows = MONTHS.map((m, i) => {
-    const s = stats(ts.filter(t => t.date.getMonth() === i));
-    const wr = s.n ? `<td class="${s.winRate >= be ? "good" : "bad"}">${pct(s.winRate)}</td>` : `<td></td>`;
-    return `<tr><td>${m}</td><td>${dash(s.n)}</td><td>${dash(s.wins)}</td><td>${dash(s.losses)}</td>${wr}<td class="m ${rCls(s.net)}">${fmtR(s.net)}</td><td class="muted">${pct(be)}</td></tr>`;
+    const s = stats(yt.filter(t => t.date.getMonth() === i));
+    return `<tr><td>${m}</td><td>${dash(s.n)}</td><td>${dash(s.wins)}</td><td>${dash(s.losses)}</td>${wrCell(s.n ? s.winRate : null)}<td class="m r ${rCls(s.net)}">${fmtR(s.net)}</td><td class="muted">${pct(be)}</td></tr>`;
   }).join("");
-  const s = stats(ts);
-  const sel = years.length > 1 ? `<select id="yearSel" aria-label="Year">${years.map(v => `<option ${v === y ? "selected" : ""}>${v}</option>`).join("")}</select>` : "";
-  $("#tMonthly").innerHTML = `<div class="title"><span>Monthly Performance - ${y}</span>${sel}</div><div class="scroll"><table>
+  const s = stats(yt);
+  const sel = years.length > 1 ? `<select id="yearSel" aria-label="Year">${years.map(v => `<option ${v === y ? "selected" : ""}>${v}</option>`).join("")}</select>` : scope();
+  $("#tMonthly").innerHTML = `<div class="title"><h2>Monthly Performance – ${y}</h2>${sel}</div><div class="scroll"><table>
     <thead><tr><th>Month</th><th>Trades</th><th>Wins</th><th>Losses</th><th>Win Rate</th><th class="m">Net R</th><th>B/E Win %</th></tr></thead>
     <tbody>${rows}</tbody>
-    <tfoot><tr class="total"><td>Total</td><td>${s.n}</td><td>${s.wins}</td><td>${s.losses}</td><td>${pct(s.winRate)}</td><td class="m ${rCls(s.net)}">${fmtR(s.net)}</td><td></td></tr></tfoot>
+    <tfoot><tr><td>Total</td><td>${s.n}</td><td>${s.wins}</td><td>${s.losses}</td>${wrCell(s.winRate)}<td class="m r ${rCls(s.net)}">${fmtR(s.net)}</td><td></td></tr></tfoot>
   </table></div>`;
-  const ys = $("#yearSel"); if (ys) ys.onchange = () => { state.year = +ys.value; renderMonthly(); };
+  const ys = $("#yearSel"); if (ys) ys.onchange = () => { state.year = +ys.value; renderMonthly(ts, years); };
 }
-function renderCumulative() {
-  const data = yearsInData(); const last = data.length ? data[data.length - 1] : new Date().getFullYear();
-  const years = []; for (let y = last; years.length < CONFIG.cumulativeYears; y--) years.push(y);
+function renderCumulative(ts, years) {
+  const last = years.length ? years[years.length - 1] : new Date().getFullYear();
+  const ys = []; for (let y = last; ys.length < CONFIG.cumulativeYears; y--) ys.push(y);
   const now = new Date();
-  const cols = years.map(y => {
-    const ts = state.trades.filter(t => t.closed && t.date.getFullYear() === y);
-    const lastMonth = y === now.getFullYear() ? now.getMonth() : 11;   // leave future months blank
+  const cols = ys.map(y => {
+    const yt = ts.filter(t => t.closed && t.date.getFullYear() === y);
+    const lastMonth = y === now.getFullYear() ? now.getMonth() : 11;   // future months stay blank
     let run = 0;
-    return MONTHS.map((_, i) => { run += ts.filter(t => t.date.getMonth() === i).reduce((s, t) => s + t.r, 0); return i <= lastMonth ? run : null; });
+    return MONTHS.map((_, i) => { run += yt.filter(t => t.date.getMonth() === i).reduce((s, t) => s + t.r, 0); return i <= lastMonth ? run : null; });
   });
-  $("#tCum").innerHTML = `<div class="title"><span>Cumulative R by Month</span></div><div class="scroll"><table>
-    <thead><tr><th>Month</th>${years.map(y => `<th class="m">${y}</th>`).join("")}</tr></thead>
-    <tbody>${MONTHS.map((m, i) => `<tr><td>${m}</td>${cols.map(c => c[i] == null ? `<td></td>` : `<td class="m ${rCls(c[i])}">${fmtR(c[i])}</td>`).join("")}</tr>`).join("")}</tbody>
+  $("#tCum").innerHTML = `<div class="title"><h2>Cumulative R by Month</h2>${scope()}</div><div class="scroll"><table>
+    <thead><tr><th>Month</th>${ys.map(y => `<th class="m">${y}</th>`).join("")}</tr></thead>
+    <tbody>${MONTHS.map((m, i) => `<tr><td>${m}</td>${cols.map(c => c[i] == null ? `<td></td>` : `<td class="m r ${rCls(c[i])}">${fmtR(c[i])}</td>`).join("")}</tr>`).join("")}</tbody>
   </table></div>`;
 }
-function renderSummary() {
-  const s = stats(state.trades), be = bePct();
+function renderSummary(ts) {
+  const s = stats(ts), be = bePct();
   const pf = s.pf == null ? "—" : s.pf === Infinity ? "∞" : s.pf.toFixed(2) + "x";
-  const rows = [
-    ["Closed Trades", s.n], ["Wins (TP)", s.wins], ["Losses (SL)", s.losses], ["Breakeven", s.be],
-    ["Win Rate", pct(s.winRate) || "—", s.winRate == null ? "" : s.winRate >= be ? "good" : "bad"],
-    ["Break-even Win Rate", pct(be), "pos"],
-    ["Total R", fmtR(s.net), rCls(s.net)], ["Expectancy (Avg R / trade)", s.exp == null ? "—" : fmtR(s.exp), s.exp == null ? "" : rCls(s.exp)],
-    ["Profit Factor", pf], ["Longest Win Streak", s.maxW], ["Longest Loss Streak", s.maxL], ["Open Trades", state.open]
-  ];
-  $("#tSummary").innerHTML = `<div class="title"><span>Performance Summary (all-time)</span></div><table class="summary"><tbody>
-    ${rows.map(([k, v, c]) => `<tr><td>${k}</td><td class="${c || ""}">${v}</td></tr>`).join("")}</tbody></table>`;
+  const row = (k, v, c = "") => `<tr><td>${k}</td><td class="${c}">${v}</td></tr>`;
+  $("#tSummary").innerHTML = `<div class="title"><h2>Performance Summary</h2>${scope()}</div><table class="summary"><tbody>
+    ${row("Closed Trades", s.n)}${row("Wins (TP)", s.wins)}${row("Losses (SL)", s.losses)}${row("Breakeven", s.be)}
+    <tr><td>Win Rate</td>${wrCell(s.winRate)}</tr>
+    ${row("Break-even Win Rate", pct(be), "pos")}
+    ${row("Total R", fmtR(s.net), "r " + rCls(s.net))}
+    ${row("Expectancy (Avg R / trade)", s.exp == null ? "—" : fmtR(s.exp), s.exp == null ? "" : "r " + rCls(s.exp))}
+    ${row("Profit Factor", pf)}${row("Longest Win Streak", s.maxW)}${row("Longest Loss Streak", s.maxL)}${row("Open Trades", s.open)}
+  </tbody></table>`;
 }
-function renderGroup(sel, title, label, key, order) {
-  const closed = state.trades.filter(t => t.closed);
-  let keys = [...new Set(closed.map(t => t[key]))];
+function renderGroup(ts, sel, title, label, key, order) {
+  const closed = ts.filter(t => t.closed);
+  const keys = [...new Set(closed.map(t => t[key]))];
+  const cnt = k => closed.filter(t => t[key] === k).length;
   if (order) keys.sort((a, b) => ((order.indexOf(a) + 1) || 99) - ((order.indexOf(b) + 1) || 99) || String(a).localeCompare(b));
-  else keys.sort((a, b) => closed.filter(t => t[key] === b).length - closed.filter(t => t[key] === a).length || String(a).localeCompare(b));
+  else keys.sort((a, b) => cnt(b) - cnt(a) || String(a).localeCompare(b));
   const rows = keys.map(k => {
     const s = stats(closed.filter(t => t[key] === k));
-    return `<tr><td>${esc(k)}</td><td>${s.n}</td><td>${s.wins}</td><td>${s.losses}</td><td>${pct(s.winRate)}</td><td class="m ${rCls(s.net)}">${fmtR(s.net)}</td></tr>`;
+    return `<tr><td>${esc(k)}</td><td>${s.n}</td><td>${s.wins}</td><td>${s.losses}</td>${wrCell(s.winRate)}<td class="m r ${rCls(s.net)}">${fmtR(s.net)}</td></tr>`;
   }).join("");
-  $(sel).innerHTML = `<div class="title"><span>${title}</span></div><div class="scroll"><table>
+  $(sel).innerHTML = `<div class="title"><h2>${title}</h2>${scope()}</div><div class="scroll"><table>
     <thead><tr><th>${label}</th><th>Trades</th><th>Wins</th><th>Losses</th><th>Win Rate</th><th class="m">Net R</th></tr></thead>
-    <tbody>${rows || `<tr><td colspan="6" class="muted">No closed trades yet</td></tr>`}</tbody></table></div>`;
+    <tbody>${rows || `<tr><td colspan="6" class="none">No closed trades in this view</td></tr>`}</tbody></table></div>`;
 }
 
 /* ---------- trade log ---------- */
 const LEFT = ["market", "direction", "session", "setup", "notes", "shot"];
 const COLS = [
-  ["no", "Trade No", t => t.no], ["date", "Date", t => ymd(t.date)], ["time", "Time", t => t.hasTime ? pad(t.date.getHours()) + ":" + pad(t.date.getMinutes()) : ""],
+  ["no", "#", t => t.no], ["date", "Date", t => ymd(t.date)], ["time", "Time", t => t.hasTime ? pad(t.date.getHours()) + ":" + pad(t.date.getMinutes()) : ""],
   ["market", "Market", t => esc(t.market)], ["direction", "Direction", t => esc(t.direction)], ["session", "Session", t => esc(t.session)],
-  ["setup", "Setup", t => esc(t.setup)], ["result", "Result", t => `<span class="pill ${t.result}">${t.result === "OPEN" ? "Open" : esc(t.result)}</span>`],
-  ["r", "R", t => t.closed ? `<span class="${rCls(t.r)}">${fmtR(t.r)}</span>` : ""], ["notes", "Notes", t => esc(t.notes)],
+  ["setup", "Setup", t => esc(t.setup)], ["result", "Result", t => `<span class="pill ${t.result}">${t.result === "OPEN" ? "OPEN" : esc(t.result)}</span>`],
+  ["r", "R", t => t.closed ? `<span class="${rCls(t.r)}">${fmtR(t.r, true)}</span>` : ""], ["notes", "Notes", t => esc(t.notes)],
   ["shot", "Screenshot", t => t.shot ? `<a href="${esc(t.shot)}" target="_blank" rel="noopener">View ↗</a>` : ""]
 ];
-function renderLog() {
+function renderLog(ts) {
   const { key, dir } = state.sort;
   const val = (t, k) => k === "time" ? (t.hasTime ? t.date.getHours() * 60 + t.date.getMinutes() : null) : t[k];
-  const rows = [...state.trades].sort((a, b) => { const x = val(a, key), y = val(b, key); if (x == null || x === "") return 1; if (y == null || y === "") return -1; return (x > y ? 1 : x < y ? -1 : 0) * dir; });
-  $("#tLog").innerHTML = `<div class="title"><span>Trade Log</span><span style="font-weight:400;font-size:12px;opacity:.85">Click a column to sort</span></div>
+  const rows = [...ts].sort((a, b) => { const x = val(a, key), y = val(b, key); if (x == null || x === "") return 1; if (y == null || y === "") return -1; return (x > y ? 1 : x < y ? -1 : 0) * dir; });
+  $("#tLog").innerHTML = `<div class="title"><h2>Trade Log</h2><span class="scope">Click a column to sort</span></div>
     <div class="logwrap"><table>
     <thead><tr>${COLS.map(([k, l]) => `<th data-k="${k}" class="${LEFT.includes(k) ? "l" : ""}">${l}${k === key ? (dir > 0 ? " ↑" : " ↓") : ""}</th>`).join("")}</tr></thead>
-    <tbody>${rows.map(t => `<tr>${COLS.map(([k, , f]) => `<td class="${k === "notes" ? "notes" : LEFT.includes(k) ? "l" : ""}">${f(t)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+    <tbody>${rows.map(t => `<tr>${COLS.map(([k, , f]) => `<td class="${k === "notes" ? "notes l" : LEFT.includes(k) ? "l" : k === "r" ? "r" : ""}">${f(t)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
   $("#tLog thead").onclick = e => { const th = e.target.closest("th"); if (!th) return; const k = th.dataset.k;
-    state.sort = { key: k, dir: state.sort.key === k ? -state.sort.dir : (["no", "date", "r"].includes(k) ? -1 : 1) }; renderLog(); };
+    state.sort = { key: k, dir: state.sort.key === k ? -state.sort.dir : (["no", "date", "r"].includes(k) ? -1 : 1) }; renderLog(ts); };
 }
 
 loadRemote();
