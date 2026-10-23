@@ -1,0 +1,526 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Trading Journal</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+/* ============================================================
+   CONFIG lives in the <script> at the bottom (file name, starting balance).
+   ============================================================ */
+:root{
+  color-scheme: light;
+  --page:#f9f9f7; --surface:#fcfcfb; --surface-2:#f3f2ee;
+  --ink:#0b0b0b; --ink-2:#52514e; --muted:#898781;
+  --grid:#e1e0d9; --axis:#c3c2b7; --border:rgba(11,11,11,.10);
+  --pos:#2a78d6; --neg:#e34948; --pos-text:#1c5cab; --neg-text:#c03333;
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100;
+  --accent:#2a78d6;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --page:#0d0d0d; --surface:#1a1a19; --surface-2:#232321;
+    --ink:#f0efec; --ink-2:#c3c2b7; --muted:#898781;
+    --grid:#2c2c2a; --axis:#383835; --border:rgba(255,255,255,.10);
+    --pos:#3987e5; --neg:#e66767; --pos-text:#6da7ec; --neg-text:#f08a8a;
+    --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500;
+    --accent:#3987e5;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --page:#0d0d0d; --surface:#1a1a19; --surface-2:#232321;
+  --ink:#f0efec; --ink-2:#c3c2b7; --muted:#898781;
+  --grid:#2c2c2a; --axis:#383835; --border:rgba(255,255,255,.10);
+  --pos:#3987e5; --neg:#e66767; --pos-text:#6da7ec; --neg-text:#f08a8a;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500;
+  --accent:#3987e5;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--page);color:var(--ink);font:14px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1240px;margin:0 auto;padding:24px 16px 64px}
+header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 24px;margin-bottom:20px}
+h1{font-size:22px;font-weight:650;margin:0;letter-spacing:-.01em}
+.sub{color:var(--ink-2);font-size:13px;margin-top:4px}
+.sub .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--muted);margin-right:6px;vertical-align:1px}
+.sub .dot.ok{background:#0ca30c}.sub .dot.err{background:#d03b3b}
+.tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+button,select{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:7px 11px;cursor:pointer}
+button:hover,select:hover{background:var(--surface-2)}
+.filters{display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px 12px;margin-bottom:16px}
+.fg{display:inline-flex;align-items:center;gap:8px;margin-right:8px}
+#fBreak{max-width:100%;overflow-x:auto}
+#fBreak button{white-space:nowrap}
+.filters label{font-size:12px;color:var(--muted);margin-right:-2px}
+.seg{display:inline-flex;border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.seg button{border:0;border-radius:0;padding:6px 10px;background:transparent;color:var(--ink-2)}
+.seg button+button{border-left:1px solid var(--border)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--surface);font-weight:600}
+.spacer{flex:1}
+.count{font-size:12px;color:var(--muted)}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:16px}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;min-width:0}
+.kpi .k{font-size:12px;color:var(--ink-2)}
+.kpi .v{font-size:26px;font-weight:650;letter-spacing:-.02em;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kpi .h{font-size:12px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pos{color:var(--pos-text)}.neg{color:var(--neg-text)}
+.grid2{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:12px;margin-bottom:12px}
+.grid2e{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;margin-bottom:12px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;min-width:0}
+.card h2{font-size:14px;font-weight:600;margin:0}
+.card .cap{font-size:12px;color:var(--muted);margin:2px 0 12px}
+.card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap}
+.chart{position:relative;height:260px}
+.chart.sm{height:150px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--ink-2);margin-bottom:8px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{text-align:right;padding:7px 8px;border-bottom:1px solid var(--grid);white-space:nowrap;font-variant-numeric:tabular-nums}
+th{font-size:12px;font-weight:600;color:var(--ink-2);cursor:pointer;user-select:none;position:sticky;top:0;background:var(--surface)}
+th:first-child,td:first-child{text-align:left}
+td.l,th.l{text-align:left}
+td.notes{white-space:normal;min-width:180px;color:var(--ink-2);text-align:left}
+tr:hover td{background:var(--surface-2)}
+.tablewrap{overflow:auto;max-height:520px;border-radius:8px}
+.bar{display:inline-block;height:8px;border-radius:0 3px 3px 0;vertical-align:middle;min-width:1px}
+.pill{display:inline-block;font-size:11px;font-weight:600;padding:1px 7px;border-radius:999px;border:1px solid var(--border);color:var(--ink-2)}
+.empty,.error{background:var(--surface);border:1px dashed var(--axis);border-radius:12px;padding:40px 20px;text-align:center;color:var(--ink-2)}
+.error{border-color:#d03b3b}
+.empty h2,.error h2{color:var(--ink);font-size:16px;margin:0 0 6px}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;background:var(--surface-2);padding:1px 5px;border-radius:4px}
+.drop{position:fixed;inset:0;background:rgba(42,120,214,.12);border:3px dashed var(--accent);display:none;align-items:center;justify-content:center;font-size:18px;font-weight:600;z-index:10}
+.drop.on{display:flex}
+.banner{background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:8px 12px;font-size:13px;color:var(--ink-2);margin-bottom:12px;display:none}
+.banner.on{display:flex;justify-content:space-between;gap:12px;align-items:center}
+footer{margin-top:28px;font-size:12px;color:var(--muted)}
+@media (max-width:900px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.grid2,.grid2e{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:420px){.kpi .v{font-size:21px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>Trading Journal</h1>
+      <div class="sub" id="status"><span class="dot"></span>Loading trades…</div>
+    </div>
+    <div class="tools">
+      <button id="reload" title="Re-read trades.xlsx">↻ Refresh</button>
+      <button id="pick" title="Preview a local file without uploading it">Open file…</button>
+      <input type="file" id="file" accept=".xlsx,.xls,.csv" hidden>
+      <button id="theme" title="Toggle light/dark">◐ Theme</button>
+    </div>
+  </header>
+
+  <div class="banner" id="localBanner"><span>Previewing a local file — this view isn't published. Push the file to GitHub to update the site.</span><button id="backRemote">Back to published data</button></div>
+
+  <div class="filters" id="filters">
+    <span class="fg"><label>Market</label><div class="seg" id="fSymbol"></div></span>
+    <span class="fg"><label>Period</label>
+    <div class="seg" id="fRange">
+      <button data-v="all" aria-pressed="true">All</button>
+      <button data-v="ytd">YTD</button>
+      <button data-v="90">90D</button>
+      <button data-v="30">30D</button>
+      <button data-v="mtd">This month</button>
+    </div></span>
+    <span class="fg"><label>Direction</label>
+    <div class="seg" id="fDir">
+      <button data-v="all" aria-pressed="true">Both</button>
+      <button data-v="BUY">Buy</button>
+      <button data-v="SELL">Sell</button>
+    </div></span>
+    <span class="spacer"></span><span class="count" id="count"></span>
+  </div>
+
+  <div id="main"></div>
+  <footer id="foot"></footer>
+</div>
+<div class="drop" id="drop">Drop your journal (.xlsx) to preview it</div>
+
+<script>
+/* ============================== CONFIG ============================== */
+const CONFIG = {
+  file: "trades.xlsx",                // workbook in the same folder as this page
+  sheet: null,                        // sheet name, or null = first sheet
+  rValues: { TP: 6, SL: -1, BE: 0 },  // R earned per result (match your Dashboard)
+  riskPerTrade: null,                 // e.g. 100 → also shows results in dollars
+  currency: "$",
+  refreshMinutes: 5
+};
+/* ==================================================================== */
+
+const $ = s => document.querySelector(s);
+const state = { trades: [], symbol: "all", range: "all", dir: "all", source: "remote", breakdown: "setup", sort: {key:"no", dir:-1} };
+const charts = {};
+
+/* ---------- theme ---------- */
+try{ const t = localStorage.getItem("tj-theme"); if(t) document.documentElement.setAttribute("data-theme", t); }catch(e){}
+$("#theme").onclick = () => {
+  const cur = document.documentElement.getAttribute("data-theme") || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+  const t = cur === "dark" ? "light" : "dark";
+  document.documentElement.setAttribute("data-theme", t); try{ localStorage.setItem("tj-theme", t); }catch(e){} render();
+};
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => render());
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+/* ---------- formatting ---------- */
+const R = (v, sign=true, d=1) => (v == null || !isFinite(v)) ? "—" : (v < 0 ? "−" : (sign && v > 0 ? "+" : "")) + Math.abs(v).toFixed(d) + "R";
+const usd = v => (v == null || !isFinite(v) || !CONFIG.riskPerTrade) ? "" :
+  (v < 0 ? "−" : v > 0 ? "+" : "") + CONFIG.currency + Math.abs(v * CONFIG.riskPerTrade).toLocaleString(undefined,{maximumFractionDigits:0});
+const pct = v => (v == null || !isFinite(v)) ? "—" : (v*100).toFixed(1) + "%";
+const num = (v, d=2) => (v == null || !isFinite(v)) ? "—" : v.toFixed(d);
+const cls = v => v > 0 ? "pos" : v < 0 ? "neg" : "";
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const DAYS = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+const ymd = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+const ym = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
+const ymLabel = k => { const [y,m] = k.split("-"); return MONTHS[+m-1] + " " + y.slice(2); };
+const hhmm = d => String(d.getHours()).padStart(2,"0") + ":" + String(d.getMinutes()).padStart(2,"0");
+const winR = () => CONFIG.rValues.TP, lossR = () => Math.abs(CONFIG.rValues.SL);
+const breakevenWR = () => lossR() / (winR() + lossR());   // win rate needed to break even
+$("#foot").innerHTML = `Reads <code id="srcName">${CONFIG.file}</code> on every load and every ${CONFIG.refreshMinutes} minutes. R per result: TP ${R(CONFIG.rValues.TP)}, SL ${R(CONFIG.rValues.SL)}, BE ${R(CONFIG.rValues.BE,false)}. Win rate = TP ÷ (TP + SL); breakevens are excluded.`;
+
+/* ---------- parsing ---------- */
+const ALIASES = {
+  no:["trade no","trade #","#","no","trade"], date:["date"], time:["time"], market:["market","symbol","pair","instrument"],
+  direction:["direction","side"], session:["session"], setup:["setup","strategy"], result:["result","outcome"],
+  notes:["notes","note","comments"], screenshot:["screenshot","chart","link","image"]
+};
+function toDate(v){
+  if (v == null || v === "") return null;
+  if (v instanceof Date) return isNaN(v) ? null : v;
+  if (typeof v === "number") { const p = XLSX.SSF.parse_date_code(v); return p ? new Date(p.y, p.m-1, p.d) : null; }
+  const m = String(v).trim().match(/^(\d{4})-(\d{1,2})-(\d{1,2})/); if (m) return new Date(+m[1], +m[2]-1, +m[3]);
+  const d = new Date(v); return isNaN(d) ? null : d;
+}
+function timeParts(v){
+  if (v == null || v === "") return null;
+  if (v instanceof Date) return [v.getHours(), v.getMinutes()];
+  if (typeof v === "number") { const mins = Math.round((v % 1) * 1440); return [Math.floor(mins/60) % 24, mins % 60]; }
+  const m = String(v).match(/(\d{1,2}):(\d{2})\s*(am|pm)?/i); if (!m) return null;
+  let h = +m[1]; if (m[3]) { const pm = /pm/i.test(m[3]); if (pm && h < 12) h += 12; if (!pm && h === 12) h = 0; }
+  return [h, +m[2]];
+}
+function parseWorkbook(buf){
+  const wb = XLSX.read(buf, {type:"array", cellDates:true});
+  const name = (CONFIG.sheet && wb.SheetNames.find(n => n.toLowerCase() === CONFIG.sheet.toLowerCase())) || wb.SheetNames[0];
+  const ws = wb.Sheets[name];
+  const rows = XLSX.utils.sheet_to_json(ws, {header:1, raw:true, defval:null});
+  // header row = first row (within the top 15) containing both "Date" and "Result"
+  const hi = rows.slice(0, 15).findIndex(r => { const h = r.map(x => String(x ?? "").trim().toLowerCase()); return h.includes("date") && h.includes("result"); });
+  if (hi < 0) throw new Error(`Couldn't find a header row with "Date" and "Result" on sheet "${name}".`);
+  const hdr = rows[hi].map(h => String(h ?? "").trim().toLowerCase()), col = {};
+  for (const [k, names] of Object.entries(ALIASES)) { const i = hdr.findIndex(h => names.includes(h)); if (i >= 0) col[k] = i; }
+  const range = XLSX.utils.decode_range(ws["!ref"]);
+  const g = (r,k) => col[k] == null ? null : r[col[k]];
+  const rv = Object.fromEntries(Object.entries(CONFIG.rValues).map(([k,v]) => [k.toUpperCase(), v]));
+  const out = [];
+  rows.slice(hi + 1).forEach((r, i) => {
+    const d = toDate(g(r,"date")); const res = String(g(r,"result") ?? "").trim().toUpperCase();
+    if (!d || !(res in rv)) return;
+    const excelRow = range.s.r + hi + 2 + i;
+    let shot = null;
+    if (col.screenshot != null) {
+      const cell = ws[XLSX.utils.encode_cell({r: excelRow - 1, c: range.s.c + col.screenshot})];
+      shot = cell?.l?.Target || (/^https?:\/\//i.test(String(g(r,"screenshot") ?? "").trim()) ? String(g(r,"screenshot")).trim() : null);
+    }
+    const t = timeParts(g(r,"time"));
+    const dirRaw = String(g(r,"direction") ?? "").trim().toUpperCase();
+    out.push({
+      no: Number(g(r,"no")) || out.length + 1, row: excelRow,
+      date: new Date(d.getFullYear(), d.getMonth(), d.getDate(), t ? t[0] : 0, t ? t[1] : 0), hasTime: !!t,
+      market: String(g(r,"market") ?? "").trim().toUpperCase() || "—",
+      direction: /^(BUY|LONG|B)$/.test(dirRaw) ? "BUY" : /^(SELL|SHORT|S)$/.test(dirRaw) ? "SELL" : (dirRaw || "—"),
+      session: String(g(r,"session") ?? "").trim() || "Unlabeled",
+      setup: String(g(r,"setup") ?? "").trim() || "Unlabeled",
+      result: res, r: rv[res], notes: g(r,"notes") ?? "", shot
+    });
+  });
+  out.sort((a,b) => a.date - b.date || a.no - b.no);
+  return out;
+}
+
+/* ---------- loading ---------- */
+async function loadRemote(){
+  setStatus("Loading trades…");
+  try{
+    const res = await fetch(CONFIG.file + "?t=" + Date.now(), {cache:"no-store"});
+    if (!res.ok) throw new Error(`Couldn't load ${CONFIG.file} (HTTP ${res.status}). Make sure it's committed next to index.html.`);
+    const lm = res.headers.get("last-modified");
+    state.trades = parseWorkbook(await res.arrayBuffer());
+    state.source = "remote"; $("#localBanner").classList.remove("on"); $("#srcName").textContent = CONFIG.file;
+    setStatus(`${state.trades.length} trades · ${lm ? "file updated " + new Date(lm).toLocaleString() : "loaded " + new Date().toLocaleTimeString()}`, "ok");
+    buildSymbolFilter(); render();
+  }catch(err){
+    setStatus("Couldn't load data", "err");
+    if (location.protocol === "file:") err = new Error("Browsers block reading files when the page is opened straight from disk. Use “Open file…” to preview, or view the published GitHub Pages site.");
+    $("#main").innerHTML = `<div class="error"><h2>Data didn't load</h2><div>${esc(err.message)}</div></div>`;
+  }
+}
+function loadLocal(file){
+  const fr = new FileReader();
+  fr.onload = () => {
+    try{
+      state.trades = parseWorkbook(new Uint8Array(fr.result));
+      state.source = "local"; $("#localBanner").classList.add("on"); $("#srcName").textContent = file.name;
+      setStatus(`${state.trades.length} trades · local preview of ${file.name}`, "ok");
+      buildSymbolFilter(); render();
+    }catch(err){ $("#main").innerHTML = `<div class="error"><h2>Couldn't read that file</h2><div>${esc(err.message)}</div></div>`; }
+  };
+  fr.readAsArrayBuffer(file);
+}
+function setStatus(t, kind){ $("#status").innerHTML = `<span class="dot ${kind||""}"></span>${esc(t)}`; }
+$("#reload").onclick = () => { if (state.source === "remote") loadRemote(); };
+$("#backRemote").onclick = () => loadRemote();
+$("#pick").onclick = () => $("#file").click();
+$("#file").onchange = e => { if (e.target.files[0]) loadLocal(e.target.files[0]); e.target.value = ""; };
+let dragN = 0;
+addEventListener("dragenter", e => { e.preventDefault(); dragN++; $("#drop").classList.add("on"); });
+addEventListener("dragleave", () => { if (--dragN <= 0) { dragN = 0; $("#drop").classList.remove("on"); } });
+addEventListener("dragover", e => e.preventDefault());
+addEventListener("drop", e => { e.preventDefault(); dragN = 0; $("#drop").classList.remove("on"); const f = e.dataTransfer.files[0]; if (f) loadLocal(f); });
+setInterval(() => { if (state.source === "remote" && !document.hidden) loadRemote(); }, CONFIG.refreshMinutes * 60000);
+
+/* ---------- filters ---------- */
+function bindSeg(id, key){
+  $(id).addEventListener("click", e => {
+    const b = e.target.closest("button"); if (!b) return;
+    $(id).querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === b));
+    state[key] = b.dataset.v; render();
+  });
+}
+function buildSymbolFilter(){
+  const syms = [...new Set(state.trades.map(t => t.market))].sort();
+  if (!syms.includes(state.symbol)) state.symbol = "all";
+  $("#fSymbol").innerHTML = [`<button data-v="all" aria-pressed="${state.symbol==="all"}">All</button>`]
+    .concat(syms.map(s => `<button data-v="${esc(s)}" aria-pressed="${state.symbol===s}">${esc(s)}</button>`)).join("");
+}
+bindSeg("#fSymbol","symbol"); bindSeg("#fRange","range"); bindSeg("#fDir","dir");
+function filtered(){
+  const now = new Date(); let from = null;
+  if (state.range === "ytd") from = new Date(now.getFullYear(),0,1);
+  else if (state.range === "mtd") from = new Date(now.getFullYear(), now.getMonth(), 1);
+  else if (state.range === "30" || state.range === "90") { from = new Date(now); from.setHours(0,0,0,0); from.setDate(from.getDate() - (+state.range) + 1); }
+  return state.trades.filter(t => (state.symbol === "all" || t.market === state.symbol) && (state.dir === "all" || t.direction === state.dir) && (!from || t.date >= from));
+}
+
+/* ---------- stats ---------- */
+function stats(ts){
+  const tp = ts.filter(t => t.result === "TP").length, sl = ts.filter(t => t.result === "SL").length, be = ts.filter(t => t.result === "BE").length;
+  const gw = ts.filter(t => t.r > 0).reduce((s,t) => s + t.r, 0), gl = -ts.filter(t => t.r < 0).reduce((s,t) => s + t.r, 0);
+  const net = gw - gl;
+  let eq = 0, peak = 0, maxDD = 0, curW = 0, curL = 0, maxW = 0, maxL = 0;
+  for (const t of ts) {
+    eq += t.r; if (eq > peak) peak = eq; maxDD = Math.max(maxDD, peak - eq);
+    if (t.result === "TP") { curW++; curL = 0; } else if (t.result === "SL") { curL++; curW = 0; }
+    maxW = Math.max(maxW, curW); maxL = Math.max(maxL, curL);
+  }
+  const decided = tp + sl;
+  return { n: ts.length, tp, sl, be, winRate: decided ? tp / decided : null, net, gw, gl,
+    pf: gl > 0 ? gw / gl : (gw > 0 ? Infinity : null), expectancy: ts.length ? net / ts.length : null, maxDD, maxW, maxL };
+}
+
+/* ---------- render ---------- */
+function render(){
+  const main = $("#main"); if (!main) return;
+  Object.values(charts).forEach(c => c.destroy()); for (const k in charts) delete charts[k];
+  if (!state.trades.length) {
+    $("#count").textContent = "";
+    if (state.source === "local" || !$("#status .dot.err")) main.innerHTML = `<div class="empty"><h2>No trades yet</h2><div>Log your first trade in <code>${esc(CONFIG.file)}</code> (Date and Result are required), save, and push it to GitHub.</div></div>`;
+    return;
+  }
+  const ts = filtered(); const s = stats(ts);
+  $("#count").textContent = `${ts.length} of ${state.trades.length} trades`;
+  if (!ts.length) { main.innerHTML = `<div class="empty"><h2>No trades match these filters</h2><div>Try a wider period or another market.</div></div>`; return; }
+
+  const bwr = breakevenWR(), edge = s.winRate == null ? null : s.winRate - bwr;
+  const months = monthly(ts);
+  const withTrades = months.keys.filter((k,i) => months.stats[i].n);
+  const best = withTrades.length ? withTrades.reduce((a,b) => months.map.get(b).net > months.map.get(a).net ? b : a) : null;
+  const worst = withTrades.length ? withTrades.reduce((a,b) => months.map.get(b).net < months.map.get(a).net ? b : a) : null;
+  const pfTxt = s.pf === Infinity ? "∞" : num(s.pf);
+
+  main.innerHTML = `
+  <section class="kpis">
+    ${kpi("Net result", R(s.net), cls(s.net), usd(s.net) || `${s.n} trades`)}
+    ${kpi("Win rate", pct(s.winRate), edge == null ? "" : edge >= 0 ? "pos" : "neg", `${s.tp} TP · ${s.sl} SL · ${s.be} BE`)}
+    ${kpi("Edge over breakeven", edge == null ? "—" : (edge >= 0 ? "+" : "−") + Math.abs(edge*100).toFixed(1) + " pts", edge == null ? "" : edge >= 0 ? "pos" : "neg", `need ${pct(bwr)} to break even at 1:${num(winR()/lossR(),0)}`)}
+    ${kpi("Expectancy", R(s.expectancy, true, 2), cls(s.expectancy), "average R per trade")}
+    ${kpi("Profit factor", pfTxt, s.pf != null && s.pf !== Infinity ? (s.pf >= 1 ? "pos" : "neg") : "", `${R(s.gw,false)} won / ${R(s.gl,false)} lost`)}
+    ${kpi("Max drawdown", s.maxDD ? R(-s.maxDD) : "0R", s.maxDD ? "neg" : "", usd(-s.maxDD) || "peak-to-trough")}
+    ${kpi("Best / worst month", best ? `${R(months.map.get(best).net)} / ${R(months.map.get(worst).net)}` : "—", "", best ? `${ymLabel(best)} / ${ymLabel(worst)}` : "")}
+    ${kpi("Streaks", `${s.maxW}W / ${s.maxL}L`, "", "longest TP / SL run (BE skipped)")}
+  </section>
+
+  <section class="grid2">
+    <div class="card"><h2>Equity curve</h2><div class="cap">Cumulative R by trade</div><div class="chart"><canvas id="cEq"></canvas></div>
+      <div class="cap" style="margin:12px 0 6px">Drawdown from running peak</div><div class="chart sm"><canvas id="cDD"></canvas></div></div>
+    <div class="card"><h2>Rolling win rate</h2><div class="cap">Last ${rollN(ts.length)} trades (TP ÷ TP+SL); dashed line = ${pct(bwr)} breakeven</div><div class="chart" style="height:430px"><canvas id="cRoll"></canvas></div></div>
+  </section>
+
+  <section class="grid2e">
+    <div class="card"><h2>Monthly result</h2><div class="cap">Net R per calendar month</div><div class="chart"><canvas id="cMon"></canvas></div></div>
+    <div class="card"><h2>Outcomes by month</h2><div class="cap">Trade count by result</div><div class="legend" id="outLegend"></div><div class="chart" style="height:236px"><canvas id="cOut"></canvas></div></div>
+  </section>
+
+  <section class="grid2e">
+    <div class="card"><h2>Win rate by month</h2><div class="cap">Dashed line = ${pct(bwr)} breakeven win rate</div><div class="chart"><canvas id="cWR"></canvas></div></div>
+    <div class="card"><h2>Daily result</h2><div class="cap">Net R per day, last 60 trading days in view</div><div class="chart"><canvas id="cDay"></canvas></div></div>
+  </section>
+
+  <section class="card" style="margin-bottom:12px">
+    <div class="card-head"><div><h2>Breakdown</h2><div class="cap">Where your edge comes from</div></div>
+      <div class="seg" id="fBreak">
+        ${[["setup","Setup"],["session","Session"],["market","Market"],["direction","Direction"],["weekday","Weekday"],["hour","Hour"]]
+          .map(([v,l]) => `<button data-v="${v}" aria-pressed="${state.breakdown===v}">${l}</button>`).join("")}
+      </div></div>
+    <div class="tablewrap" id="breakTable"></div>
+  </section>
+
+  <section class="card">
+    <div class="card-head"><div><h2>Trades</h2><div class="cap">Click a column to sort</div></div></div>
+    <div class="tablewrap" id="tradeTable"></div>
+  </section>`;
+
+  $("#fBreak").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; state.breakdown = b.dataset.v;
+    $("#fBreak").querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === b)); renderBreakdown(ts); });
+  drawCharts(ts, s, months); renderBreakdown(ts); renderTrades(ts);
+}
+const kpi = (k, v, c, h) => `<div class="kpi"><div class="k">${k}</div><div class="v ${c}">${v}</div><div class="h">${h || "&nbsp;"}</div></div>`;
+const rollN = n => n >= 60 ? 20 : n >= 20 ? 10 : Math.max(1, n);
+function monthly(ts){
+  const map0 = new Map(); ts.forEach(t => { const k = ym(t.date); if (!map0.has(k)) map0.set(k, []); map0.get(k).push(t); });
+  const keys = fillMonths([...map0.keys()].sort()); const st = keys.map(k => stats(map0.get(k) || []));
+  return { keys, stats: st, trades: map0, map: new Map(keys.map((k,i) => [k, st[i]])) };
+}
+
+/* ---------- charts ---------- */
+const crosshair = { id:"crosshair", afterDraw(c){ const a = c.tooltip?._active; if (!a || !a.length) return;
+  const x = a[0].element.x, {top, bottom} = c.chartArea, ctx = c.ctx; ctx.save(); ctx.beginPath(); ctx.moveTo(x, top); ctx.lineTo(x, bottom);
+  ctx.lineWidth = 1; ctx.strokeStyle = css("--axis"); ctx.stroke(); ctx.restore(); } };
+function tip(extra){ return Object.assign({ backgroundColor:css("--surface"), titleColor:css("--ink"), bodyColor:css("--ink-2"), borderColor:css("--axis"), borderWidth:1,
+  padding:10, displayColors:false, titleFont:{weight:"600"} }, extra); }
+function opts({ tooltip = {}, x = {}, y = {}, ...rest } = {}){
+  const muted = css("--muted");
+  return { responsive:true, maintainAspectRatio:false, animation:false, interaction:{mode:"index", intersect:false},
+    plugins:{ legend:{display:false}, tooltip: tip(tooltip) },
+    scales:{
+      x: Object.assign({ grid:{display:false}, border:{color:css("--axis")}, ticks:{color:muted, maxRotation:0, autoSkipPadding:12, font:{size:11}} }, x),
+      y: Object.assign({ grid:{color:css("--grid")}, border:{display:false}, ticks:{color:muted, font:{size:11}, callback:v => v + "R"} }, y)
+    }, ...rest };
+}
+function drawCharts(ts, s, months){
+  Chart.defaults.font.family = getComputedStyle(document.body).fontFamily;
+  const pos = css("--pos"), neg = css("--neg"), surf = css("--surface"), muted = css("--muted");
+  const bwr = breakevenWR() * 100;
+
+  // Equity + drawdown
+  let eq = 0, peak = 0; const eqPts = [0], ddPts = [0], labels = ["Start"];
+  ts.forEach(t => { eq += t.r; peak = Math.max(peak, eq); eqPts.push(eq); ddPts.push(eq - peak); labels.push(`Trade ${t.no} · ${ymd(t.date)}`); });
+  const xTicks = { color:muted, maxRotation:0, font:{size:11}, maxTicksLimit:8, callback:(v,i) => i === 0 ? "Start" : ymLabel(ym(ts[i-1].date)) };
+  charts.eq = new Chart($("#cEq"), { type:"line", plugins:[crosshair],
+    data:{ labels, datasets:[{ data:eqPts, borderColor:pos, borderWidth:2, pointRadius:0, pointHoverRadius:5, pointHoverBackgroundColor:pos, pointHoverBorderColor:surf, pointHoverBorderWidth:2,
+      fill:{target:{value:0}, above:hexA(pos,.10), below:hexA(neg,.10)} }] },
+    options: opts({ x:{ ticks:xTicks }, tooltip:{ callbacks:{ title:i => labels[i[0].dataIndex], label:i => { const k = i.dataIndex; if (!k) return "Start 0R"; const t = ts[k-1];
+      return [`Equity ${R(eqPts[k])}${CONFIG.riskPerTrade ? " (" + usd(eqPts[k]) + ")" : ""}`, `${t.result} ${R(t.r,true,0)} · ${t.market} ${t.direction} · ${t.setup}`]; } } } }) });
+  charts.dd = new Chart($("#cDD"), { type:"line", plugins:[crosshair],
+    data:{ labels, datasets:[{ data:ddPts, borderColor:neg, borderWidth:1.5, pointRadius:0, pointHoverRadius:4, fill:{target:"origin", below:hexA(neg,.16)} }] },
+    options: opts({ x:{ display:false }, y:{ max:0 }, tooltip:{ callbacks:{ title:i => labels[i[0].dataIndex], label:i => `Drawdown ${R(ddPts[i.dataIndex])}` } } }) });
+
+  // Rolling win rate
+  const N = rollN(ts.length), roll = [], rl = [];
+  ts.forEach((t,i) => { if (i < N - 1) return; const w = ts.slice(i - N + 1, i + 1); const st = stats(w); roll.push(st.winRate == null ? null : st.winRate * 100); rl.push(i); });
+  charts.roll = new Chart($("#cRoll"), { type:"line", plugins:[crosshair],
+    data:{ labels: rl.map(i => `Trade ${ts[i].no} · ${ymd(ts[i].date)}`), datasets:[
+      { data: roll, borderColor:pos, borderWidth:2, pointRadius:0, pointHoverRadius:5, pointHoverBackgroundColor:pos, pointHoverBorderColor:surf, pointHoverBorderWidth:2, spanGaps:true },
+      { data: rl.map(() => bwr), borderColor:muted, borderWidth:1, borderDash:[4,4], pointRadius:0, pointHoverRadius:0 } ] },
+    options: opts({ x:{ ticks:{ color:muted, maxRotation:0, font:{size:11}, maxTicksLimit:6, callback:v => ymLabel(ym(ts[rl[v]].date)) } },
+      y:{ min:0, max:100, ticks:{ color:muted, font:{size:11}, stepSize:25, callback:v => v + "%" } },
+      tooltip:{ filter:i => i.datasetIndex === 0, callbacks:{ label:i => `Win rate ${i.raw == null ? "—" : i.raw.toFixed(1) + "%"} over last ${N}` } } }) });
+
+  // Monthly
+  const mk = months.keys, ms = months.stats;
+  charts.mon = new Chart($("#cMon"), { type:"bar",
+    data:{ labels: mk.map(ymLabel), datasets:[{ data: ms.map(m => m.net), backgroundColor: ms.map(m => m.net >= 0 ? pos : neg), borderRadius:4, borderSkipped:"start", maxBarThickness:42 }] },
+    options: opts({ tooltip:{ callbacks:{ label:i => { const m = ms[i.dataIndex]; return [`Net ${R(m.net)}${CONFIG.riskPerTrade ? " (" + usd(m.net) + ")" : ""}`, `${m.n} trades · win rate ${pct(m.winRate)}`]; } } } }) });
+
+  // Outcomes stacked: TP, SL, BE in fixed categorical order
+  const outKeys = ["TP","SL","BE"], outCol = { TP:css("--s1"), SL:css("--s2"), BE:css("--s3") }, outName = { TP:"TP", SL:"SL", BE:"Breakeven" };
+  $("#outLegend").innerHTML = outKeys.map(k => `<span><i style="background:${outCol[k]}"></i>${outName[k]}</span>`).join("");
+  charts.out = new Chart($("#cOut"), { type:"bar",
+    data:{ labels: mk.map(ymLabel), datasets: outKeys.map(k => ({ label: outName[k], data: mk.map(m => (months.trades.get(m) || []).filter(t => t.result === k).length),
+      backgroundColor: outCol[k], borderColor: surf, borderWidth:{top:2, bottom:0, left:0, right:0}, maxBarThickness:42 })) },
+    options: opts({ x:{ stacked:true }, y:{ stacked:true, ticks:{ color:muted, font:{size:11}, precision:0 } }, tooltip:{ displayColors:true, usePointStyle:true, boxWidth:8, boxHeight:8 } }) });
+
+  // Win rate by month
+  charts.wr = new Chart($("#cWR"), { type:"line", plugins:[crosshair],
+    data:{ labels: mk.map(ymLabel), datasets:[
+      { data: ms.map(m => m.winRate == null ? null : m.winRate * 100), borderColor:pos, borderWidth:2, pointRadius: mk.length > 24 ? 0 : 4, pointBackgroundColor:pos, pointBorderColor:surf, pointBorderWidth:2, spanGaps:true },
+      { data: mk.map(() => bwr), borderColor:muted, borderWidth:1, borderDash:[4,4], pointRadius:0, pointHoverRadius:0 } ] },
+    options: opts({ y:{ min:0, max:100, ticks:{ color:muted, font:{size:11}, stepSize:25, callback:v => v + "%" } },
+      tooltip:{ filter:i => i.datasetIndex === 0, callbacks:{ label:i => { const m = ms[i.dataIndex]; return [`Win rate ${pct(m.winRate)}`, `${m.tp} TP · ${m.sl} SL${m.be ? " · " + m.be + " BE" : ""}`]; } } } }) });
+
+  // Daily
+  const byD = new Map(); ts.forEach(t => { const k = ymd(t.date); const o = byD.get(k) || {r:0,n:0}; o.r += t.r; o.n++; byD.set(k, o); });
+  const dk = [...byD.keys()].sort().slice(-60);
+  charts.day = new Chart($("#cDay"), { type:"bar",
+    data:{ labels: dk, datasets:[{ data: dk.map(k => byD.get(k).r), backgroundColor: dk.map(k => byD.get(k).r >= 0 ? pos : neg), borderRadius:3, borderSkipped:"start", maxBarThickness:18 }] },
+    options: opts({ x:{ ticks:{ color:muted, maxRotation:0, font:{size:11}, maxTicksLimit:6, callback:v => { const d = new Date(dk[v] + "T00:00"); return `${MONTHS[d.getMonth()]} ${d.getDate()}`; } } },
+      tooltip:{ callbacks:{ title:i => { const d = new Date(dk[i[0].dataIndex] + "T00:00"); return `${DAYS[d.getDay()]} ${dk[i[0].dataIndex]}`; },
+        label:i => { const o = byD.get(dk[i.dataIndex]); return [`Net ${R(o.r)}`, `${o.n} trade${o.n === 1 ? "" : "s"}`]; } } } }) });
+}
+function fillMonths(keys){
+  if (!keys.length) return keys; const out = []; let [y,m] = keys[0].split("-").map(Number); const [ey,em] = keys[keys.length-1].split("-").map(Number);
+  while (y < ey || (y === ey && m <= em)) { out.push(`${y}-${String(m).padStart(2,"0")}`); if (++m > 12) { m = 1; y++; } }
+  return out;
+}
+function hexA(hex, a){ const h = hex.replace("#",""); const n = parseInt(h.length === 3 ? h.split("").map(c=>c+c).join("") : h, 16); return `rgba(${n>>16&255},${n>>8&255},${n&255},${a})`; }
+
+/* ---------- breakdown ---------- */
+function renderBreakdown(ts){
+  const key = state.breakdown;
+  const keyOf = t => key === "weekday" ? DAYS[t.date.getDay()] : key === "hour" ? (t.hasTime ? String(t.date.getHours()).padStart(2,"0") + ":00" : "No time") : t[key];
+  const groups = new Map(); ts.forEach(t => { const k = keyOf(t); if (!groups.has(k)) groups.set(k, []); groups.get(k).push(t); });
+  let rows = [...groups.entries()].map(([k, g]) => ({ k, s: stats(g) }));
+  if (key === "weekday") rows.sort((a,b) => DAYS.indexOf(a.k) - DAYS.indexOf(b.k));
+  else if (key === "hour") rows.sort((a,b) => a.k.localeCompare(b.k));
+  else rows.sort((a,b) => b.s.net - a.s.net);
+  const maxAbs = Math.max(1, ...rows.map(r => Math.abs(r.s.net)));
+  const label = $("#fBreak button[aria-pressed=true]")?.textContent || "";
+  $("#breakTable").innerHTML = `<table><thead><tr><th class="l">${esc(label)}</th><th>Trades</th><th>TP / SL / BE</th><th>Win rate</th><th>Net R</th><th class="l" style="width:22%"></th><th>Expectancy</th><th>Profit factor</th></tr></thead><tbody>
+    ${rows.map(r => `<tr><td>${esc(r.k)}</td><td>${r.s.n}</td><td>${r.s.tp} / ${r.s.sl} / ${r.s.be}</td><td>${pct(r.s.winRate)}</td><td class="${cls(r.s.net)}">${R(r.s.net)}</td>
+      <td class="l"><span class="bar" style="width:${(Math.abs(r.s.net)/maxAbs*100).toFixed(1)}%;background:${r.s.net >= 0 ? css("--pos") : css("--neg")}"></span></td>
+      <td class="${cls(r.s.expectancy)}">${R(r.s.expectancy, true, 2)}</td><td>${r.s.pf === Infinity ? "∞" : num(r.s.pf)}</td></tr>`).join("")}
+  </tbody></table>`;
+}
+
+/* ---------- trades table ---------- */
+const LEFT = ["market","direction","session","setup","result","notes","shot"];
+const COLS = [
+  ["no","Trade No",t => t.no], ["date","Date",t => ymd(t.date)], ["time","Time",t => t.hasTime ? hhmm(t.date) : "—"],
+  ["market","Market",t => esc(t.market)], ["direction","Direction",t => esc(t.direction)], ["session","Session",t => esc(t.session)],
+  ["setup","Setup",t => esc(t.setup)], ["result","Result",t => `<span class="pill">${esc(t.result)}</span>`],
+  ["r","R",t => `<span class="${cls(t.r)}">${R(t.r, true, 0)}</span>`], ["notes","Notes",t => esc(t.notes)],
+  ["shot","Screenshot",t => t.shot ? `<a href="${esc(t.shot)}" target="_blank" rel="noopener" style="color:var(--pos-text)">View ↗</a>` : ""]
+];
+function renderTrades(ts){
+  const {key, dir} = state.sort;
+  const val = (t,k) => k === "time" ? (t.hasTime ? t.date.getHours()*60 + t.date.getMinutes() : null) : k === "shot" ? t.shot : t[k];
+  const rows = [...ts].sort((a,b) => { const x = val(a,key), y = val(b,key); if (x == null || x === "") return 1; if (y == null || y === "") return -1; return (x > y ? 1 : x < y ? -1 : 0) * dir; });
+  $("#tradeTable").innerHTML = `<table><thead><tr>${COLS.map(([k,l]) => `<th data-k="${k}" class="${LEFT.includes(k) ? "l" : ""}">${l}${k === key ? (dir > 0 ? " ↑" : " ↓") : ""}</th>`).join("")}</tr></thead>
+  <tbody>${rows.map(t => `<tr>${COLS.map(([k,,f]) => `<td class="${k === "notes" ? "notes" : LEFT.includes(k) ? "l" : ""}">${f(t)}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
+  $("#tradeTable thead").onclick = e => { const th = e.target.closest("th"); if (!th) return; const k = th.dataset.k;
+    state.sort = { key:k, dir: state.sort.key === k ? -state.sort.dir : (["no","date","r"].includes(k) ? -1 : 1) }; renderTrades(ts); };
+}
+
+loadRemote();
+</script>
+</body>
+</html>
