@@ -150,7 +150,8 @@ main > *,.view > *{min-width:0}
 
 /* ---------- tables ---------- */
 .grid{display:grid;gap:18px;align-items:start}
-.row1{grid-template-columns:minmax(0,1.5fr) minmax(0,1fr) minmax(0,.85fr)}
+.row1{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr)}
+.stack{display:grid;gap:18px;min-width:0}
 .row2{grid-template-columns:repeat(2,minmax(0,1fr))}
 .tbl{background:var(--surface);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:var(--shadow);min-width:0}
 .tbl .title{background:var(--navy);color:var(--navy-ink);padding:10px 14px;display:flex;justify-content:space-between;align-items:center;gap:10px;min-height:44px}
@@ -173,8 +174,13 @@ td.wr span{display:inline-block;min-width:62px;padding:3px 8px;border-radius:6px
 .good{background:var(--good-fill);color:var(--good-ink)}
 .bad{background:var(--bad-fill);color:var(--bad-ink)}
 .summary td{text-align:left;padding:7.5px 14px}
-.summary td:last-child{text-align:right;font-weight:600}
+.summary td:not(:first-child){text-align:right;font-weight:600}
 .summary td.wr{text-align:right;padding:4px 10px}
+tr.grp td{font-weight:600;background:var(--surface-2)}
+tr.sub td{font-size:13px;color:var(--ink-2)}
+tr.sub td:first-child{padding-left:30px;position:relative}
+tr.sub td:first-child::before{content:"";position:absolute;left:16px;top:50%;width:8px;height:1px;background:var(--muted)}
+.summary th{text-align:right}.summary th:first-child{text-align:left}
 .none{color:var(--muted);text-align:center!important;padding:18px!important}
 
 /* trade log */
@@ -230,7 +236,7 @@ code{font-family:var(--mono);font-size:12px;background:var(--surface-2);border:1
 .drop.on{display:flex}
 footer{font-size:12px;color:var(--muted);padding-bottom:min(42vh,380px);position:relative;z-index:1}
 
-@media (max-width:1100px){.row1{grid-template-columns:repeat(2,minmax(0,1fr))}.row1 .monthly{grid-column:1/-1}}
+@media (max-width:1100px){.row1{grid-template-columns:minmax(0,1fr)}}
 @media (max-width:860px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))}.charts,.riskgrid{grid-template-columns:minmax(0,1fr)}}
 @media (max-width:640px){.filterbar{position:static}}
 @media (max-width:640px){.row1,.row2{grid-template-columns:minmax(0,1fr)}.card .v{font-size:21px}h1{font-size:18px}}
@@ -329,8 +335,8 @@ body.no-shark footer{padding-bottom:36px}
   <div class="drawer-head"><a href="#cards" class="home" id="homeLink2"><b>Trading Journal</b></a><button class="x" id="closeMenu" type="button" aria-label="Close menu">×</button></div>
   <nav class="navlist">
     <a href="#cards" data-view="cards"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="2.5" y="2.5" width="6" height="6" rx="1.5"/><rect x="11.5" y="2.5" width="6" height="6" rx="1.5"/><rect x="2.5" y="11.5" width="6" height="6" rx="1.5"/><rect x="11.5" y="11.5" width="6" height="6" rx="1.5"/></svg><span>Cards<small>Stats and performance tables</small></span></a>
-    <a href="#log" data-view="log"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="3" y="2.5" width="14" height="15" rx="2"/><path d="M6.5 7h7M6.5 10h7M6.5 13h4"/></svg><span>Trade log<small>Every trade, notes and screenshots</small></span></a>
     <a href="#charts" data-view="charts"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M2.5 16.5h15"/><path d="M4 12l4-4 3 3 5-6"/></svg><span>Charts<small>Equity, monthly R, win rate</small></span></a>
+    <a href="#log" data-view="log"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="3" y="2.5" width="14" height="15" rx="2"/><path d="M6.5 7h7M6.5 10h7M6.5 13h4"/></svg><span>Trade log<small>Every trade, notes and screenshots</small></span></a>
     <a href="#risk" data-view="risk"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M10 2.5l6 2.5v4.5c0 4-2.6 6.6-6 8-3.4-1.4-6-4-6-8V5z"/><path d="M7.5 10l1.8 1.8L12.8 8"/></svg><span>Risk management<small>Position size, streaks, daily rules</small></span></a>
   </nav>
   <div class="dsec">Display</div>
@@ -349,12 +355,10 @@ body.no-shark footer{padding-bottom:36px}
       <div class="sub" id="status"><span class="dot"></span>Loading trades…</div>
     </div>
     <nav class="tabs" aria-label="Pages">
-      <a href="#cards" data-view="cards">Cards</a><a href="#log" data-view="log">Trade log</a><a href="#charts" data-view="charts">Charts</a><a href="#risk" data-view="risk">Risk management</a>
+      <a href="#cards" data-view="cards">Cards</a><a href="#charts" data-view="charts">Charts</a><a href="#log" data-view="log">Trade log</a><a href="#risk" data-view="risk">Risk management</a>
     </nav>
     <div class="tools">
       <button id="reload" type="button" title="Re-read trades.xlsx">↻<span class="lbl"> Refresh</span></button>
-      <button id="pick" type="button" title="Preview a local file without uploading it">⇪<span class="lbl"> Open file</span></button>
-      <input type="file" id="file" accept=".xlsx,.xls" hidden>
     </div>
   </div>
 </header>
@@ -393,7 +397,7 @@ const CONFIG = {
   sheet: null,                        // sheet name, or null = first sheet
   rValues: { TP: 6, SL: -1, BE: 0 },  // R earned per result (match your Dashboard)
   screenshotFolder: "screenshots",    // image files named in the Screenshot column live here
-  cumulativeYears: 3,                 // how many years the Cumulative R table shows
+  cumulativeYears: 6,                 // how many years the Cumulative R table shows
   contractSizes: { XAUUSD: 100, GBPUSD: 100000, EURUSD: 100000, ETHUSD: 1, BTCUSD: 1 }, // units per 1 lot (check your broker)
   refreshMinutes: 5
 };
@@ -526,7 +530,7 @@ async function loadRemote(auto = false) {
     setStatus(`${state.trades.length} trades · ${lm ? "updated " + new Date(lm).toLocaleString() : "loaded " + new Date().toLocaleTimeString()}`, "ok");
   } catch (err) {
     setStatus("Couldn't load data", "err");
-    if (location.protocol === "file:") err = new Error("Browsers block reading files when the page is opened straight from disk. Use “Open file” to preview, or view the published GitHub Pages site.");
+    if (location.protocol === "file:") err = new Error("Browsers block reading files when the page is opened straight from disk. Drag your trades.xlsx onto this page to preview it, or view the published GitHub Pages site.");
     showMsg(`<div class="error"><h2>Data didn't load</h2><div>${esc(err.message)}</div></div>`);
   }
 }
@@ -546,8 +550,6 @@ function setStatus(t, kind) { $("#status").innerHTML = `<span class="dot ${kind 
 function showMsg(html) { $("#msg").innerHTML = html; document.querySelectorAll(".view").forEach(v => v.hidden = true); }
 $("#reload").onclick = () => { if (state.source === "remote") loadRemote(); };
 $("#backRemote").onclick = () => loadRemote();
-$("#pick").onclick = () => $("#file").click();
-$("#file").onchange = e => { if (e.target.files[0]) loadLocal(e.target.files[0]); e.target.value = ""; };
 let dragN = 0;
 addEventListener("dragenter", e => { e.preventDefault(); dragN++; $("#drop").classList.add("on"); });
 addEventListener("dragleave", () => { if (--dragN <= 0) { dragN = 0; $("#drop").classList.remove("on"); } });
@@ -605,7 +607,7 @@ const scope = () => `<span class="scope">${isAll() ? "All-time" : "Filtered"}</s
 /* ---------- animation helpers ---------- */
 function reveal(root, animate) {
   if (!animate || reduceMotion) return;
-  [...root.querySelectorAll(":scope > *, :scope > .cards > *, :scope > .grid > *, :scope > .charts > *, :scope > .riskgrid > *")]
+  [...root.querySelectorAll(":scope > *, :scope > .cards > *, :scope > .grid > *, :scope > .grid > .stack > *, :scope > .charts > *, :scope > .riskgrid > *")]
     .forEach((el, i) => { el.classList.remove("reveal"); void el.offsetWidth; el.style.setProperty("--d", Math.min(i * 45, 600) + "ms"); el.classList.add("reveal"); });
 }
 function countUp(el, to, fmt, ms = 900) {
@@ -640,8 +642,9 @@ function renderCardsView(ts) {
   if (!years.includes(state.year)) state.year = years.length ? years[years.length - 1] : new Date().getFullYear();
   $("#view-cards").innerHTML = `
     <section class="cards" id="cards"></section>
-    <section class="grid row1"><div class="tbl monthly" id="tMonthly"></div><div class="tbl" id="tCum"></div><div class="tbl" id="tSummary"></div></section>
-    <section class="grid row2"><div class="tbl" id="tDir"></div><div class="tbl" id="tMarket"></div><div class="tbl" id="tSession"></div><div class="tbl" id="tSetup"></div></section>`;
+    <section class="grid row1"><div class="tbl" id="tMonthly"></div><div class="tbl" id="tCum"></div></section>
+    <section class="grid row2"><div class="tbl" id="tSummary"></div><div class="stack"><div class="tbl" id="tDir"></div><div class="tbl" id="tMarket"></div></div></section>
+    <section class="grid row2"><div class="tbl" id="tSession"></div><div class="tbl" id="tSetup"></div></section>`;
   renderCards(ts); renderMonthly(ts, years); renderCumulative(ts, years); renderSummary(ts);
   renderGroup(ts, "#tDir", "Performance by Direction", "Direction", "direction", ["BUY", "SELL"]);
   renderGroup(ts, "#tMarket", "Performance by Market", "Market", "market");
@@ -705,17 +708,20 @@ function renderCumulative(ts, years) {
   </table></div>`;
 }
 function renderSummary(ts) {
-  const s = stats(ts), be = bePct();
-  const pf = s.pf == null ? "—" : s.pf === Infinity ? "∞" : s.pf.toFixed(2) + "x";
-  const row = (k, v, c = "") => `<tr><td>${k}</td><td class="${c}">${v}</td></tr>`;
-  $("#tSummary").innerHTML = `<div class="title"><h3>Performance Summary</h3>${scope()}</div><table class="summary"><tbody>
-    ${row("Closed Trades", s.n)}${row("Wins (TP)", s.wins)}${row("Losses (SL)", s.losses)}${row("Breakeven", s.be)}
-    <tr><td>Win Rate</td>${wrCell(s.winRate)}</tr>
-    ${row("Break-even Win Rate", pct(be), "pos")}
-    ${row("Total R", fmtR(s.net), "r " + rCls(s.net))}
-    ${row("Expectancy (Avg R / trade)", s.exp == null ? "—" : fmtR(s.exp), s.exp == null ? "" : "r " + rCls(s.exp))}
-    ${row("Profit Factor", pf)}${row("Longest Win Streak", s.maxW)}${row("Longest Loss Streak", s.maxL)}${row("Open Trades", s.open)}
-  </tbody></table>`;
+  const be = bePct(), mk = groupKeys(ts.filter(t => t.closed), "market");
+  const cols = [["All markets", ts]].concat(mk.length > 1 ? mk.map(m => [m, ts.filter(t => t.market === m)]) : []);
+  const S = cols.map(([, list]) => stats(list));
+  const pf = s => s.pf == null ? "—" : s.pf === Infinity ? "∞" : s.pf.toFixed(2) + "x";
+  const row = (k, f, c = () => "") => `<tr><td>${k}</td>${S.map(s => `<td class="${c(s)}">${f(s)}</td>`).join("")}</tr>`;
+  $("#tSummary").innerHTML = `<div class="title"><h3>Performance Summary</h3>${scope()}</div><div class="scroll"><table class="summary">
+    ${cols.length > 1 ? `<thead><tr><th></th>${cols.map(([n]) => `<th>${esc(n)}</th>`).join("")}</tr></thead>` : ""}<tbody>
+    ${row("Closed Trades", s => s.n)}${row("Wins (TP)", s => s.wins)}${row("Losses (SL)", s => s.losses)}${row("Breakeven", s => s.be)}
+    <tr><td>Win Rate</td>${S.map(s => wrCell(s.winRate)).join("")}</tr>
+    ${row("Break-even Win Rate", () => pct(be), () => "pos")}
+    ${row("Total R", s => fmtR(s.net), s => "r " + rCls(s.net))}
+    ${row("Expectancy (Avg R / trade)", s => s.exp == null ? "—" : fmtR(s.exp), s => s.exp == null ? "" : "r " + rCls(s.exp))}
+    ${row("Profit Factor", pf)}${row("Longest Win Streak", s => s.maxW)}${row("Longest Loss Streak", s => s.maxL)}${row("Open Trades", s => s.open)}
+  </tbody></table></div>`;
 }
 function groupKeys(closed, key, order) {
   const keys = [...new Set(closed.map(t => t[key]))]; const cnt = k => closed.filter(t => t[key] === k).length;
@@ -725,9 +731,11 @@ function groupKeys(closed, key, order) {
 }
 function renderGroup(ts, sel, title, label, key, order) {
   const closed = ts.filter(t => t.closed);
+  const split = key !== "market" && groupKeys(closed, "market").length > 1;   // break each row down by market
+  const line = (name, s, cls) => `<tr class="${cls}"><td>${esc(name)}</td><td>${s.n}</td><td>${s.wins}</td><td>${s.losses}</td>${wrCell(s.winRate)}<td class="m r ${rCls(s.net)}">${fmtR(s.net)}</td></tr>`;
   const rows = groupKeys(closed, key, order).map(k => {
-    const s = stats(closed.filter(t => t[key] === k));
-    return `<tr><td>${esc(k)}</td><td>${s.n}</td><td>${s.wins}</td><td>${s.losses}</td>${wrCell(s.winRate)}<td class="m r ${rCls(s.net)}">${fmtR(s.net)}</td></tr>`;
+    const sub = closed.filter(t => t[key] === k);
+    return line(k, stats(sub), split ? "grp" : "") + (split ? groupKeys(closed, "market").filter(m => sub.some(t => t.market === m)).map(m => line(m, stats(sub.filter(t => t.market === m)), "sub")).join("") : "");
   }).join("");
   $(sel).innerHTML = `<div class="title"><h3>${title}</h3>${scope()}</div><div class="scroll"><table>
     <thead><tr><th>${label}</th><th>Trades</th><th>Wins</th><th>Losses</th><th>Win Rate</th><th class="m">Net R</th></tr></thead>
