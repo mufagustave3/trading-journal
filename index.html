@@ -61,6 +61,8 @@ body{background:var(--page);color:var(--ink);font:14px/1.45 var(--sans);-webkit-
 .burger span::before,.burger span::after{content:"";position:absolute;left:0;width:18px;height:2px;background:#fff;border-radius:2px}
 .burger span::before{top:-6px}.burger span::after{top:6px}
 .brand{display:flex;flex-direction:column;min-width:0;margin-right:auto}
+.home{color:inherit;text-decoration:none;border-radius:6px}
+.home:hover{text-decoration:underline;text-underline-offset:4px;text-decoration-thickness:1px}
 h1{font-size:20px;font-weight:600;margin:0;letter-spacing:-.01em}
 .sub{font-size:12.5px;opacity:.82;margin-top:1px}
 .sub .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#9aa6b8;margin-right:6px;vertical-align:1px}
@@ -74,7 +76,7 @@ h1{font-size:20px;font-weight:600;margin:0;letter-spacing:-.01em}
 .tools{display:flex;gap:8px}
 .tools button{font:inherit;font-size:13px;font-weight:500;color:#fff;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.22);border-radius:9px;padding:8px 12px;cursor:pointer}
 .tools button:hover{background:rgba(255,255,255,.16)}
-@media (max-width:900px){.tabs{display:none}}
+@media (max-width:1020px){.tabs{display:none}}
 @media (max-width:520px){.tools .lbl{display:none}}
 
 /* ---------- drawer ---------- */
@@ -180,7 +182,7 @@ td.wr span{display:inline-block;min-width:62px;padding:3px 8px;border-radius:6px
 .log td{font-size:13px}
 .log .l{text-align:left}
 .log td.notes{white-space:normal;min-width:180px;color:var(--ink-2)}
-.logwrap{max-height:560px;overflow:auto}
+.logwrap{max-height:calc(100vh - 230px);min-height:320px;overflow:auto}
 .log thead th{position:sticky;top:0;z-index:1}
 .pill{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.03em;padding:2px 9px;border-radius:999px}
 .pill.TP{background:var(--good-fill);color:var(--good-ink)}
@@ -324,9 +326,10 @@ body.no-shark footer{padding-bottom:36px}
 <!-- ================= menu drawer ================= -->
 <div class="scrim" id="scrim"></div>
 <aside class="drawer" id="drawer" aria-label="Menu" aria-hidden="true">
-  <div class="drawer-head"><b>Trading Journal</b><button class="x" id="closeMenu" type="button" aria-label="Close menu">×</button></div>
+  <div class="drawer-head"><a href="#cards" class="home" id="homeLink2"><b>Trading Journal</b></a><button class="x" id="closeMenu" type="button" aria-label="Close menu">×</button></div>
   <nav class="navlist">
-    <a href="#cards" data-view="cards"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="2.5" y="2.5" width="6" height="6" rx="1.5"/><rect x="11.5" y="2.5" width="6" height="6" rx="1.5"/><rect x="2.5" y="11.5" width="6" height="6" rx="1.5"/><rect x="11.5" y="11.5" width="6" height="6" rx="1.5"/></svg><span>Cards<small>Stats, tables and trade log</small></span></a>
+    <a href="#cards" data-view="cards"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="2.5" y="2.5" width="6" height="6" rx="1.5"/><rect x="11.5" y="2.5" width="6" height="6" rx="1.5"/><rect x="2.5" y="11.5" width="6" height="6" rx="1.5"/><rect x="11.5" y="11.5" width="6" height="6" rx="1.5"/></svg><span>Cards<small>Stats and performance tables</small></span></a>
+    <a href="#log" data-view="log"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="3" y="2.5" width="14" height="15" rx="2"/><path d="M6.5 7h7M6.5 10h7M6.5 13h4"/></svg><span>Trade log<small>Every trade, notes and screenshots</small></span></a>
     <a href="#charts" data-view="charts"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M2.5 16.5h15"/><path d="M4 12l4-4 3 3 5-6"/></svg><span>Charts<small>Equity, monthly R, win rate</small></span></a>
     <a href="#risk" data-view="risk"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M10 2.5l6 2.5v4.5c0 4-2.6 6.6-6 8-3.4-1.4-6-4-6-8V5z"/><path d="M7.5 10l1.8 1.8L12.8 8"/></svg><span>Risk management<small>Position size, streaks, daily rules</small></span></a>
   </nav>
@@ -342,11 +345,11 @@ body.no-shark footer{padding-bottom:36px}
   <div class="wrap">
     <button class="burger" id="openMenu" type="button" aria-label="Open menu" aria-controls="drawer" aria-expanded="false"><span></span></button>
     <div class="brand">
-      <h1>Trading Journal</h1>
+      <h1><a href="#cards" class="home" id="homeLink" title="Go to home page">Trading Journal</a></h1>
       <div class="sub" id="status"><span class="dot"></span>Loading trades…</div>
     </div>
     <nav class="tabs" aria-label="Pages">
-      <a href="#cards" data-view="cards">Cards</a><a href="#charts" data-view="charts">Charts</a><a href="#risk" data-view="risk">Risk management</a>
+      <a href="#cards" data-view="cards">Cards</a><a href="#log" data-view="log">Trade log</a><a href="#charts" data-view="charts">Charts</a><a href="#risk" data-view="risk">Risk management</a>
     </nav>
     <div class="tools">
       <button id="reload" type="button" title="Re-read trades.xlsx">↻<span class="lbl"> Refresh</span></button>
@@ -375,6 +378,7 @@ body.no-shark footer{padding-bottom:36px}
     <div class="banner" id="localBanner" hidden><span>Previewing a local file. This view isn't published; push the file to GitHub to update the site.</span><button id="backRemote" type="button">Back to published data</button></div>
     <div id="msg"></div>
     <section class="view" id="view-cards" hidden></section>
+    <section class="view" id="view-log" hidden></section>
     <section class="view" id="view-charts" hidden></section>
     <section class="view" id="view-risk" hidden></section>
   </main>
@@ -405,6 +409,7 @@ load("tj-filters", state.f); load("tj-risk", state.risk);
 const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const charts = {};
+const VIEWS = ["cards", "log", "charts", "risk"];
 
 /* ---------- theme & shark ---------- */
 const isDark = () => (document.documentElement.getAttribute("data-theme") || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")) === "dark";
@@ -421,13 +426,14 @@ $("#openMenu").onclick = () => openMenu(true); $("#closeMenu").onclick = () => o
 addEventListener("keydown", e => { if (e.key === "Escape") openMenu(false); });
 document.querySelectorAll("[data-view]").forEach(a => a.addEventListener("click", e => { e.preventDefault(); setView(a.dataset.view); openMenu(false); }));
 function setView(v, push = true) {
-  if (!["cards", "charts", "risk"].includes(v)) v = "cards";
+  if (!VIEWS.includes(v)) v = "cards";
   state.view = v;
   document.querySelectorAll("[data-view]").forEach(a => a.dataset.view === v ? a.setAttribute("aria-current", "page") : a.removeAttribute("aria-current"));
   if (push) try { history.replaceState(null, "", "#" + v); } catch (e) {}
   render(true);
   scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" });
 }
+["#homeLink", "#homeLink2"].forEach(id => $(id).addEventListener("click", e => { e.preventDefault(); openMenu(false); setView("cards"); }));
 addEventListener("hashchange", () => { const v = location.hash.slice(1); if (v && v !== state.view) setView(v, false); });
 
 /* ---------- formatting ---------- */
@@ -622,6 +628,7 @@ function render(animate) {
   document.querySelectorAll(".view").forEach(v => v.hidden = v.id !== "view-" + state.view);
   if (!ts.length) { $("#view-" + state.view).innerHTML = `<div class="empty"><h2>No trades match these filters</h2><div>Try a wider period, or reset the filters.</div></div>`; return; }
   if (state.view === "cards") renderCardsView(ts);
+  else if (state.view === "log") renderLogView(ts);
   else if (state.view === "charts") renderChartsView(ts);
   else renderRiskView(ts);
   reveal($("#view-" + state.view), animate);
@@ -634,14 +641,12 @@ function renderCardsView(ts) {
   $("#view-cards").innerHTML = `
     <section class="cards" id="cards"></section>
     <section class="grid row1"><div class="tbl monthly" id="tMonthly"></div><div class="tbl" id="tCum"></div><div class="tbl" id="tSummary"></div></section>
-    <section class="grid row2"><div class="tbl" id="tDir"></div><div class="tbl" id="tMarket"></div><div class="tbl" id="tSession"></div><div class="tbl" id="tSetup"></div></section>
-    <section class="tbl log" id="tLog"></section>`;
+    <section class="grid row2"><div class="tbl" id="tDir"></div><div class="tbl" id="tMarket"></div><div class="tbl" id="tSession"></div><div class="tbl" id="tSetup"></div></section>`;
   renderCards(ts); renderMonthly(ts, years); renderCumulative(ts, years); renderSummary(ts);
   renderGroup(ts, "#tDir", "Performance by Direction", "Direction", "direction", ["BUY", "SELL"]);
   renderGroup(ts, "#tMarket", "Performance by Market", "Market", "market");
   renderGroup(ts, "#tSession", "Performance by Session", "Session", "session", ["Asia", "London", "New York"]);
   renderGroup(ts, "#tSetup", "Performance by Setup", "Setup", "setup");
-  renderLog(ts);
 }
 function renderCards(ts) {
   const s = stats(ts), be = bePct();
@@ -736,6 +741,12 @@ const COLS = [
   ["r", "R", t => t.closed ? `<span class="${rCls(t.r)}">${fmtR(t.r, true)}</span>` : ""], ["notes", "Notes", t => esc(t.notes)],
   ["shot", "Screenshot", t => t.shot ? `<a href="${esc(t.shot)}" target="_blank" rel="noopener">View ↗</a>` : ""]
 ];
+function renderLogView(ts) {
+  const s = stats(ts), shots = ts.filter(t => t.shot).length;
+  $("#view-log").innerHTML = `<div class="viewhead"><h2>Trade log</h2><p>${ts.length} trade${ts.length === 1 ? "" : "s"} · ${s.wins} TP · ${s.losses} SL · ${s.be} BE${s.open ? " · " + s.open + " open" : ""} · ${shots} with screenshots</p></div>
+    <section class="tbl log" id="tLog"></section>`;
+  renderLog(ts);
+}
 function renderLog(ts) {
   const { key, dir } = state.sort;
   const val = (t, k) => k === "time" ? (t.hasTime ? t.date.getHours() * 60 + t.date.getMinutes() : null) : t[k];
@@ -914,7 +925,7 @@ function riskOutputs(ts, s) {
 }
 
 /* ---------- start ---------- */
-state.view = ["cards", "charts", "risk"].includes(location.hash.slice(1)) ? location.hash.slice(1) : "cards";
+state.view = VIEWS.includes(location.hash.slice(1)) ? location.hash.slice(1) : "cards";
 document.querySelectorAll("[data-view]").forEach(a => a.dataset.view === state.view ? a.setAttribute("aria-current", "page") : a.removeAttribute("aria-current"));
 loadRemote();
 </script>
