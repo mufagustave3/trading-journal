@@ -2,118 +2,386 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
 <title>Trading Journal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-/* Layout: report tables laid out like the Excel Dashboard sheet — navy title bands, tinted column headers */
+/* Layout: navy header with menu → sticky filters → one of three views (Cards / Charts / Risk) over a fixed animated sea */
 :root{
   color-scheme: light;
-  --page:#f4f6f9; --surface:#ffffff; --ink:#111827; --ink-2:#4b5563; --muted:#8a93a3;
-  --line:#e3e7ee; --band:#1f3864; --band-ink:#ffffff; --colhead:#dce6f1; --colhead-ink:#111827;
-  --pos:#1a7f43; --neg:#c62828; --zero:#8a93a3;
-  --good-fill:#d6efdc; --good-ink:#14592f; --bad-fill:#f7d7d7; --bad-ink:#8e1c1c;
-  --border:rgba(17,24,39,.10); --hover:#f3f6fa;
+  --page:#e9eef5; --surface:rgba(255,255,255,.84); --surface-solid:#ffffff; --surface-2:#f5f7fb; --ink:#0f1726; --ink-2:#445064; --muted:#7a869a;
+  --line:#e3e8ef; --border:#d9dfe8; --shadow:0 1px 2px rgba(15,23,38,.05),0 8px 24px rgba(15,23,38,.06);
+  --navy:#1f3864; --navy-2:#2b4a80; --navy-ink:#ffffff; --head:#eaf0f8; --head-ink:#2a3a55;
+  --pos:#157347; --neg:#c42b2b; --zero:#97a0ae; --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a;
+  --good-fill:#dcf1e3; --good-ink:#11593a; --bad-fill:#fadcdc; --bad-ink:#8f1d1d;
+  --chip:#ffffff; --chip-on:#1f3864; --chip-on-ink:#ffffff; --hover:#f1f5fa;
+  --sea-1:#9fb6d3; --sea-2:#5f7fa8; --sea-3:#2f4f7a; --shark:#566577; --shark-belly:#c9d2dc; --blood:#b3121b;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif; --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;
+  --ease:cubic-bezier(.2,.8,.2,1);
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
     color-scheme: dark;
-    --page:#0b0d11; --surface:#14171d; --ink:#eef1f5; --ink-2:#c4cad4; --muted:#8a93a3;
-    --line:#262b34; --band:#1f3864; --band-ink:#ffffff; --colhead:#dce6f1; --colhead-ink:#111827;
-    --pos:#4caf6e; --neg:#ef5350; --zero:#8a93a3;
-    --good-fill:#4f6b2a; --good-ink:#ffffff; --bad-fill:#6e2626; --bad-ink:#ffffff;
-    --border:rgba(255,255,255,.10); --hover:#1b1f27;
+    --page:#070a10; --surface:rgba(17,22,33,.80); --surface-solid:#111621; --surface-2:#161c29; --ink:#e9edf4; --ink-2:#b5bfce; --muted:#7f8a9c;
+    --line:#202838; --border:#242d3e; --shadow:0 8px 28px rgba(0,0,0,.35);
+    --head:#18202f; --head-ink:#c9d4e6;
+    --pos:#43c07a; --neg:#f06262; --zero:#6f7a8c; --s1:#3987e5; --s2:#d95926; --s3:#199e70;
+    --good-fill:#1d4a2e; --good-ink:#c9f2d8; --bad-fill:#5a2020; --bad-ink:#ffd6d6;
+    --chip:#131927; --chip-on:#e9edf4; --chip-on-ink:#070a10; --hover:#192132;
+    --sea-1:#16263d; --sea-2:#0f1d31; --sea-3:#0a1424; --shark:#3e4a59; --shark-belly:#8c99a8; --blood:#c0141e;
   }
 }
 :root[data-theme="dark"]{
   color-scheme: dark;
-  --page:#0b0d11; --surface:#14171d; --ink:#eef1f5; --ink-2:#c4cad4; --muted:#8a93a3;
-  --line:#262b34; --band:#1f3864; --band-ink:#ffffff; --colhead:#dce6f1; --colhead-ink:#111827;
-  --pos:#4caf6e; --neg:#ef5350; --zero:#8a93a3;
-  --good-fill:#4f6b2a; --good-ink:#ffffff; --bad-fill:#6e2626; --bad-ink:#ffffff;
-  --border:rgba(255,255,255,.10); --hover:#1b1f27;
+  --page:#070a10; --surface:rgba(17,22,33,.80); --surface-solid:#111621; --surface-2:#161c29; --ink:#e9edf4; --ink-2:#b5bfce; --muted:#7f8a9c;
+  --line:#202838; --border:#242d3e; --shadow:0 8px 28px rgba(0,0,0,.35);
+  --head:#18202f; --head-ink:#c9d4e6;
+  --pos:#43c07a; --neg:#f06262; --zero:#6f7a8c; --s1:#3987e5; --s2:#d95926; --s3:#199e70;
+  --good-fill:#1d4a2e; --good-ink:#c9f2d8; --bad-fill:#5a2020; --bad-ink:#ffd6d6;
+  --chip:#131927; --chip-on:#e9edf4; --chip-on-ink:#070a10; --hover:#192132;
+  --sea-1:#16263d; --sea-2:#0f1d31; --sea-3:#0a1424; --shark:#3e4a59; --shark-belly:#8c99a8; --blood:#c0141e;
 }
 *{box-sizing:border-box}
 html,body{margin:0}
-body{background:var(--page);color:var(--ink);font:14px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
-.wrap{max-width:1280px;margin:0 auto;padding-block:24px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 24px;margin-bottom:20px}
-h1{font-size:22px;font-weight:650;margin:0;letter-spacing:-.01em}
-.sub{color:var(--ink-2);font-size:13px;margin-top:4px}
-.sub .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--muted);margin-right:6px;vertical-align:1px}
-.sub .dot.ok{background:#16a34a}.sub .dot.err{background:#dc2626}
-.tools{display:flex;gap:8px;flex-wrap:wrap}
-button,select{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:7px 11px;cursor:pointer}
-button:hover{background:var(--hover)}
-button:focus-visible,select:focus-visible,a:focus-visible{outline:2px solid var(--band);outline-offset:2px}
+body{background:var(--page);color:var(--ink);font:14px/1.45 var(--sans);-webkit-font-smoothing:antialiased;min-height:100vh}
+.wrap{max-width:1320px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.layer{position:relative;z-index:1}
+
+/* ---------- header ---------- */
+.hero{background:linear-gradient(120deg,#1a2f55 0%,var(--navy) 55%,#24467c 100%);color:var(--navy-ink);position:relative;z-index:3}
+.hero .wrap{padding-block:16px;display:flex;align-items:center;gap:14px 20px;flex-wrap:wrap}
+.burger{width:42px;height:42px;border-radius:10px;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.08);display:grid;place-items:center;cursor:pointer;flex:none}
+.burger:hover{background:rgba(255,255,255,.16)}
+.burger span{display:block;width:18px;height:2px;background:#fff;border-radius:2px;position:relative}
+.burger span::before,.burger span::after{content:"";position:absolute;left:0;width:18px;height:2px;background:#fff;border-radius:2px}
+.burger span::before{top:-6px}.burger span::after{top:6px}
+.brand{display:flex;flex-direction:column;min-width:0;margin-right:auto}
+.home{color:inherit;text-decoration:none;border-radius:6px}
+.home:hover{text-decoration:underline;text-underline-offset:4px;text-decoration-thickness:1px}
+h1{font-size:20px;font-weight:600;margin:0;letter-spacing:-.01em}
+.sub{font-size:12.5px;opacity:.82;margin-top:1px}
+.sub .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#9aa6b8;margin-right:6px;vertical-align:1px}
+.sub .dot.ok{background:#4ade80;box-shadow:0 0 0 0 rgba(74,222,128,.6);animation:ping 2.4s infinite}
+.sub .dot.err{background:#f87171}
+@keyframes ping{0%{box-shadow:0 0 0 0 rgba(74,222,128,.55)}70%{box-shadow:0 0 0 7px rgba(74,222,128,0)}100%{box-shadow:0 0 0 0 rgba(74,222,128,0)}}
+.tabs{display:flex;gap:4px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);border-radius:11px;padding:3px}
+.tabs a{color:rgba(255,255,255,.82);text-decoration:none;font-weight:500;font-size:13.5px;padding:7px 14px;border-radius:8px;white-space:nowrap}
+.tabs a:hover{color:#fff;background:rgba(255,255,255,.1)}
+.tabs a[aria-current="page"]{background:#fff;color:var(--navy)}
+.tools{display:flex;gap:8px}
+.tools button{font:inherit;font-size:13px;font-weight:500;color:#fff;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.22);border-radius:9px;padding:8px 12px;cursor:pointer}
+.tools button:hover{background:rgba(255,255,255,.16)}
+@media (max-width:1020px){.tabs{display:none}}
+@media (max-width:520px){.tools .lbl{display:none}}
+
+/* ---------- drawer ---------- */
+.scrim{position:fixed;inset:0;background:rgba(5,9,16,.45);opacity:0;pointer-events:none;transition:opacity .25s;z-index:30}
+.drawer{position:fixed;top:0;bottom:0;left:0;width:min(320px,86vw);background:var(--surface-solid);border-right:1px solid var(--border);z-index:31;transform:translateX(-102%);transition:transform .32s var(--ease);
+  padding:calc(18px + env(safe-area-inset-top,0px)) 16px calc(18px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:18px;overflow:auto}
+body.menu-open .scrim{opacity:1;pointer-events:auto}
+body.menu-open .drawer{transform:none;box-shadow:12px 0 40px rgba(0,0,0,.25)}
+.drawer-head{display:flex;justify-content:space-between;align-items:center}
+.drawer-head b{font-size:15px}
+.x{font:inherit;font-size:20px;line-height:1;border:0;background:none;color:var(--ink-2);cursor:pointer;padding:6px 8px;border-radius:8px}
+.x:hover{background:var(--hover)}
+.navlist{display:grid;gap:4px}
+.navlist a{display:flex;gap:12px;align-items:center;padding:11px 12px;border-radius:10px;color:var(--ink);text-decoration:none;font-weight:500}
+.navlist a:hover{background:var(--hover)}
+.navlist a[aria-current="page"]{background:var(--navy);color:#fff}
+.navlist svg{flex:none}
+.navlist small{display:block;font-size:12px;font-weight:400;opacity:.7}
+.dsec{font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);padding:0 4px}
+.switch{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-radius:10px;cursor:pointer;gap:12px}
+.switch:hover{background:var(--hover)}
+.switch input{appearance:none;width:38px;height:22px;border-radius:999px;background:var(--line);position:relative;cursor:pointer;transition:background .2s;flex:none;margin:0}
+.switch input::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .2s var(--ease)}
+.switch input:checked{background:var(--navy-2)}
+.switch input:checked::after{transform:translateX(16px)}
+
+/* ---------- filter bar ---------- */
+.filterbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:4;background:color-mix(in srgb,var(--page) 84%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--page);z-index:10}
+.filterbar .wrap{padding-block:10px;display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center}
+.fg{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.fg > span{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.seg{display:inline-flex;background:var(--chip);border:1px solid var(--border);border-radius:10px;padding:2px;gap:2px;flex-wrap:wrap}
+.seg button{font:inherit;font-size:13px;font-weight:500;border:0;background:transparent;color:var(--ink-2);padding:5px 11px;border-radius:8px;cursor:pointer;white-space:nowrap;transition:background .15s,color .15s}
+.seg button:hover{background:var(--hover)}
+.seg button[aria-pressed="true"]{background:var(--chip-on);color:var(--chip-on-ink)}
+.fb-end{margin-left:auto;display:flex;gap:12px;align-items:center}
+.count{font-size:12.5px;color:var(--muted);white-space:nowrap}
+.linkbtn{font:inherit;font-size:12.5px;font-weight:600;color:var(--ink-2);background:none;border:0;padding:4px 2px;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+button:focus-visible,select:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(--navy-2);outline-offset:2px}
+@media (max-width:860px){.fb-end{margin-left:0}}
+
+main{padding-block:22px 64px;display:grid;gap:18px}
+main > *,.view > *{min-width:0}
+#msg:empty{display:none}
+.view{display:grid;gap:18px;min-width:0}
+.view[hidden]{display:none!important}
+.viewhead{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+.viewhead h2{font-size:18px;font-weight:600;margin:0;letter-spacing:-.01em}
+.viewhead p{margin:0;color:var(--ink-2);font-size:13px}
+.banner{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:9px 14px;font-size:13px;color:var(--ink-2);display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}
 .banner[hidden]{display:none!important}
-.banner{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:8px 12px;font-size:13px;color:var(--ink-2);margin-bottom:16px;display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}
+.banner button{font:inherit;font-size:12.5px;font-weight:600;border:1px solid var(--border);background:var(--surface-2);color:var(--ink);border-radius:7px;padding:5px 10px;cursor:pointer}
 
-.grid{display:grid;gap:16px;margin-bottom:16px;align-items:start}
-.row1{grid-template-columns:minmax(0,1.45fr) minmax(0,1fr) minmax(0,.8fr)}
+/* ---------- reveal animation ---------- */
+.reveal{animation:rise .55s var(--ease) both;animation-delay:var(--d,0ms)}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+/* ---------- cards ---------- */
+.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.card{background:var(--surface);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid var(--border);border-radius:14px;padding:16px 16px 14px;box-shadow:var(--shadow);min-width:0;display:grid;gap:4px;align-content:start;position:relative;overflow:hidden;transition:transform .2s var(--ease),box-shadow .2s}
+.card::before{content:"";position:absolute;inset:0 0 auto;height:3px;background:var(--accent,transparent)}
+.card:hover{transform:translateY(-2px)}
+.card .k{font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.card .v{font-family:var(--mono);font-size:26px;font-weight:600;letter-spacing:-.02em;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card .h{font-size:12.5px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.meter{position:relative;height:6px;border-radius:3px;background:var(--line);margin-top:6px}
+.meter i{position:absolute;inset:0 auto 0 0;border-radius:3px;width:0;transition:width 1s var(--ease)}
+.meter b{position:absolute;top:-4px;width:2px;height:14px;background:var(--ink-2);border-radius:1px}
+.pos{color:var(--pos)}.neg{color:var(--neg)}.zero{color:var(--zero)}.muted{color:var(--muted)}
+
+/* ---------- tables ---------- */
+.grid{display:grid;gap:18px;align-items:start}
+.row1{grid-template-columns:minmax(0,1.5fr) minmax(0,1fr) minmax(0,.85fr)}
 .row2{grid-template-columns:repeat(2,minmax(0,1fr))}
-@media (max-width:1100px){.row1{grid-template-columns:repeat(2,minmax(0,1fr))}.row1 .monthly{grid-column:1/-1}}
-@media (max-width:700px){.row1,.row2{grid-template-columns:minmax(0,1fr)}}
-
-.tbl{background:var(--surface);border:1px solid var(--border);border-radius:6px;overflow:hidden;min-width:0}
-.tbl .title{background:var(--band);color:var(--band-ink);font-weight:650;font-size:13.5px;padding:7px 12px;display:flex;justify-content:space-between;align-items:center;gap:8px}
-.tbl .title select{background:transparent;color:var(--band-ink);border-color:rgba(255,255,255,.35);padding:2px 6px;font-size:12.5px}
-.tbl .title select option{color:#111827}
+.tbl{background:var(--surface);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:var(--shadow);min-width:0}
+.tbl .title{background:var(--navy);color:var(--navy-ink);padding:10px 14px;display:flex;justify-content:space-between;align-items:center;gap:10px;min-height:44px}
+.tbl .title h3{font-size:13.5px;font-weight:600;margin:0}
+.scope{font-size:10.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:2px 8px;border-radius:999px;background:rgba(255,255,255,.14);white-space:nowrap}
+.tbl .title select{font:inherit;font-size:12.5px;color:#fff;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.28);border-radius:6px;padding:2px 6px}
+.tbl .title select option{color:#0f1726;background:#fff}
 .scroll{overflow-x:auto}
 table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
-th{background:var(--colhead);color:var(--colhead-ink);font-size:12.5px;font-weight:650;padding:5px 10px;text-align:center;white-space:nowrap}
-td{padding:4px 10px;text-align:center;white-space:nowrap;border-bottom:1px solid var(--line)}
+th{background:var(--head);color:var(--head-ink);font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;padding:8px 12px;text-align:center;white-space:nowrap;border-bottom:1px solid var(--line)}
+td{padding:7px 12px;text-align:center;white-space:nowrap;border-bottom:1px solid var(--line);transition:background .15s}
+tbody tr:last-child td{border-bottom:0}
 th:first-child,td:first-child{text-align:left}
-td.m{text-align:right;padding-right:16px}
-th.m{text-align:right;padding-right:16px}
+th.m,td.m{text-align:right}
+td.r{font-family:var(--mono);font-size:13px}
 tbody tr:hover td{background:var(--hover)}
-tr.total td{font-weight:700;border-top:2px solid var(--ink-2);border-bottom:0}
-.pos{color:var(--pos)}.neg{color:var(--neg)}.zero{color:var(--zero)}
-.muted{color:var(--muted)}
-td.good{background:var(--good-fill);color:var(--good-ink)}
-td.bad{background:var(--bad-fill);color:var(--bad-ink)}
-.summary td{text-align:left}
-.summary td:last-child{text-align:right;font-weight:650}
+tfoot td{font-weight:700;border-top:2px solid var(--ink-2);border-bottom:0;background:var(--surface-2)}
+td.wr{padding:4px 8px}
+td.wr span{display:inline-block;min-width:62px;padding:3px 8px;border-radius:6px;font-weight:600}
+.good{background:var(--good-fill);color:var(--good-ink)}
+.bad{background:var(--bad-fill);color:var(--bad-ink)}
+.summary td{text-align:left;padding:7.5px 14px}
+.summary td:last-child{text-align:right;font-weight:600}
+.summary td.wr{text-align:right;padding:4px 10px}
+.none{color:var(--muted);text-align:center!important;padding:18px!important}
 
-.log .title{justify-content:space-between}
-.log td{font-size:13px}
-.log td.notes{white-space:normal;min-width:160px;text-align:left;color:var(--ink-2)}
+/* trade log */
 .log th{cursor:pointer;user-select:none}
-.log td.l,.log th.l{text-align:left}
-.pill{display:inline-block;font-size:11px;font-weight:700;padding:1px 8px;border-radius:999px;border:1px solid var(--border)}
-.pill.TP{color:var(--pos)}.pill.SL{color:var(--neg)}.pill.BE{color:var(--muted)}.pill.OPEN{color:var(--ink-2)}
-a{color:var(--pos)}
-.logwrap{max-height:560px;overflow:auto}
+.log td{font-size:13px}
+.log .l{text-align:left}
+.log td.notes{white-space:normal;min-width:180px;color:var(--ink-2)}
+.logwrap{max-height:calc(100vh - 230px);min-height:320px;overflow:auto}
 .log thead th{position:sticky;top:0;z-index:1}
+.pill{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.03em;padding:2px 9px;border-radius:999px}
+.pill.TP{background:var(--good-fill);color:var(--good-ink)}
+.pill.SL{background:var(--bad-fill);color:var(--bad-ink)}
+.pill.BE,.pill.OPEN{background:var(--line);color:var(--ink-2)}
+.log a{color:var(--s1);font-weight:600;text-decoration:none}
+.log a:hover{text-decoration:underline}
 
-.empty,.error{background:var(--surface);border:1px dashed var(--muted);border-radius:10px;padding:40px 20px;text-align:center;color:var(--ink-2)}
+/* ---------- charts ---------- */
+.charts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.chartcard{background:var(--surface);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid var(--border);border-radius:14px;padding:16px;box-shadow:var(--shadow);min-width:0}
+.chartcard.wide{grid-column:1/-1}
+.chartcard h3{font-size:14px;font-weight:600;margin:0}
+.chartcard .cap{font-size:12px;color:var(--muted);margin:2px 0 12px}
+.cbox{position:relative;height:260px}
+.cbox.tall{height:300px}.cbox.sm{height:130px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--ink-2);margin:-4px 0 8px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+
+/* ---------- risk ---------- */
+.riskgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;align-items:start}
+.panel{background:var(--surface);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow);min-width:0;overflow:hidden}
+.panel > .tbl{border:0;border-radius:0;box-shadow:none;background:none;backdrop-filter:none;-webkit-backdrop-filter:none}
+.panel .body{padding:16px;display:grid;gap:14px}
+.fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
+.field{display:grid;gap:5px}
+.field label{font-size:12px;font-weight:600;color:var(--ink-2)}
+.field input,.field select{font:inherit;font-family:var(--mono);font-size:14px;color:var(--ink);background:var(--surface-2);border:1px solid var(--border);border-radius:9px;padding:8px 10px;width:100%;min-width:0}
+.field select{font-family:var(--sans)}
+.outs{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.out{background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:grid;gap:2px}
+.out span{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.out b{font-family:var(--mono);font-size:18px;font-weight:600}
+.out.hl{background:var(--navy);border-color:var(--navy)}
+.out.hl span{color:rgba(255,255,255,.7)}.out.hl b{color:#fff}
+.note{font-size:12px;color:var(--muted);margin:0;line-height:1.5}
+.bar{height:8px;border-radius:4px;background:var(--line);overflow:hidden;min-width:80px}
+.bar i{display:block;height:100%;border-radius:4px;transition:width .9s var(--ease)}
+
+.empty,.error{background:var(--surface);border:1px dashed var(--border);border-radius:14px;padding:44px 20px;text-align:center;color:var(--ink-2)}
 .error{border-color:var(--neg)}
 .empty h2,.error h2{color:var(--ink);font-size:16px;margin:0 0 6px}
-code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;background:var(--hover);padding:1px 5px;border-radius:4px}
-.drop{position:fixed;inset:0;background:rgba(31,56,100,.15);border:3px dashed var(--band);display:none;align-items:center;justify-content:center;font-size:18px;font-weight:600;z-index:10}
+code{font-family:var(--mono);font-size:12px;background:var(--surface-2);border:1px solid var(--line);padding:1px 5px;border-radius:4px}
+.drop{position:fixed;inset:0;background:rgba(31,56,100,.18);border:3px dashed var(--navy-2);display:none;align-items:center;justify-content:center;font-size:18px;font-weight:600;z-index:40;color:var(--ink)}
 .drop.on{display:flex}
-footer{margin-top:24px;font-size:12px;color:var(--muted)}
+footer{font-size:12px;color:var(--muted);padding-bottom:min(42vh,380px);position:relative;z-index:1}
+
+@media (max-width:1100px){.row1{grid-template-columns:repeat(2,minmax(0,1fr))}.row1 .monthly{grid-column:1/-1}}
+@media (max-width:860px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))}.charts,.riskgrid{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:640px){.filterbar{position:static}}
+@media (max-width:640px){.row1,.row2{grid-template-columns:minmax(0,1fr)}.card .v{font-size:21px}h1{font-size:18px}}
+
+/* ---------- the sea & the shark ---------- */
+.sea{position:fixed;left:0;right:0;bottom:0;height:min(46vh,420px);z-index:0;pointer-events:none;overflow:hidden}
+body.no-shark .sea{display:none}
+body.no-shark footer{padding-bottom:36px}
+.sea .glow{position:absolute;right:6%;bottom:22%;width:min(520px,70vw);height:120px;border-radius:50%;background:radial-gradient(closest-side,color-mix(in srgb,var(--blood) 55%,transparent),transparent);opacity:0;filter:blur(6px);animation:glow 16s var(--ease) infinite}
+.sea .shark{position:absolute;right:7%;bottom:0;width:min(400px,62vw);aspect-ratio:4/3;transform-origin:50% 100%;animation:breach 16s var(--ease) infinite}
+.sea .shark .jaw{transform-origin:262px 100px;animation:chomp 16s ease-in-out infinite}
+.sea .drip{animation:drip 1.6s ease-in infinite}
+.sea .drip:nth-of-type(2){animation-delay:.5s}.sea .drip:nth-of-type(3){animation-delay:1s}
+.sea .wave{position:absolute;left:0;width:200%;height:100%;bottom:0}
+.sea .w1{animation:swell 14s linear infinite;opacity:.55}
+.sea .w2{animation:swell 9s linear infinite reverse;opacity:.8}
+.sea .w3{animation:swell 6s linear infinite}
+.sea .splash{position:absolute;right:calc(7% + min(160px,25vw));bottom:24%;width:200px;height:120px}
+.sea .splash circle{opacity:0;animation:splash 16s ease-out infinite}
+@keyframes breach{
+  0%,48%{transform:translateY(105%) rotate(14deg)}
+  60%{transform:translateY(8%) rotate(-4deg)}
+  66%{transform:translateY(0%) rotate(-7deg)}
+  76%{transform:translateY(4%) rotate(-3deg)}
+  90%,100%{transform:translateY(105%) rotate(12deg)}
+}
+@keyframes chomp{0%,58%{transform:rotate(0)}62%{transform:rotate(9deg)}65%{transform:rotate(-2deg)}68%{transform:rotate(8deg)}72%,100%{transform:rotate(0)}}
+@keyframes glow{0%,52%{opacity:0}64%{opacity:.75}86%{opacity:.35}100%{opacity:0}}
+@keyframes splash{0%,56%{opacity:0;transform:translate(0,0)}60%{opacity:.9}74%{opacity:0;transform:translate(var(--sx),var(--sy))}100%{opacity:0}}
+@keyframes swell{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@keyframes drip{0%{transform:translateY(0);opacity:0}15%{opacity:1}100%{transform:translateY(26px);opacity:0}}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
+  .sea .shark{animation:none;transform:translateY(38%) rotate(-4deg)}
+  .sea .glow{animation:none;opacity:.35}
+}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header class="top">
-    <div>
-      <h1>Trading Journal</h1>
+<!-- ================= animated background ================= -->
+<div class="sea" aria-hidden="true">
+  <svg class="wave w1" viewBox="0 0 2400 420" preserveAspectRatio="none"><path fill="var(--sea-1)" d="M0 250 Q150 215 300 250 T600 250 T900 250 T1200 250 T1500 250 T1800 250 T2100 250 T2400 250 V420 H0Z"/></svg>
+  <div class="glow"></div>
+  <svg class="shark" viewBox="0 0 400 300">
+    <defs>
+      <linearGradient id="skin" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="var(--shark)"/><stop offset="1" stop-color="color-mix(in srgb,var(--shark) 70%,#000)"/></linearGradient>
+    </defs>
+    <!-- dorsal & pectoral fins -->
+    <path d="M182 128 Q150 98 124 86 Q142 122 160 164 Z" fill="url(#skin)"/>
+    <path d="M238 176 Q276 196 296 222 Q262 214 232 198 Z" fill="url(#skin)"/>
+    <!-- body -->
+    <path d="M150 300 C140 230 150 160 190 112 C218 80 250 60 285 56 C305 54 322 60 336 70 C328 78 314 84 298 88 L262 100 L250 150 C232 180 225 240 228 300 Z" fill="url(#skin)"/>
+    <path d="M250 150 C232 180 225 240 228 300 L206 300 C204 240 216 186 250 150 Z" fill="var(--shark-belly)" opacity=".85"/>
+    <!-- mouth -->
+    <path d="M262 100 L298 88 L304 114 Z" fill="#3a0508"/>
+    <g fill="#f4f1ea">
+      <path d="M270 98 L275 96.4 L274 104 Z"/><path d="M278 95.6 L283 94 L282 102 Z"/><path d="M286 93 L291 91.4 L290 99 Z"/><path d="M293 90.8 L297 89.4 L296 96 Z"/>
+    </g>
+    <!-- lower jaw (chomps) -->
+    <g class="jaw">
+      <path d="M262 100 L302 112 C314 116 320 124 315 132 C298 140 272 142 250 150 Z" fill="url(#skin)"/>
+      <path d="M262 100 L302 112 C314 116 320 124 315 132 C298 140 272 142 250 150 Z" fill="var(--shark-belly)" opacity=".35"/>
+      <g fill="#f4f1ea"><path d="M272 104 L277 105.6 L275 98 Z"/><path d="M280 106.6 L285 108 L283 100 Z"/><path d="M288 109 L293 110.4 L291 102 Z"/><path d="M295 111 L299 112 L298 105 Z"/></g>
+      <!-- blood on the teeth and chin -->
+      <path d="M276 106 Q284 112 300 113 Q305 120 298 130 Q290 122 282 120 Q276 114 276 106 Z" fill="var(--blood)" opacity=".85"/>
+      <path class="drip" d="M296 132 q2 6 0 10 q-3 2 -4 -2 q0 -4 4 -8 Z" fill="var(--blood)"/>
+      <path class="drip" d="M286 136 q2 6 0 10 q-3 2 -4 -2 q0 -4 4 -8 Z" fill="var(--blood)"/>
+      <path class="drip" d="M306 128 q2 6 0 10 q-3 2 -4 -2 q0 -4 4 -8 Z" fill="var(--blood)"/>
+    </g>
+    <path d="M300 90 Q306 98 304 106" stroke="var(--blood)" stroke-width="3" fill="none" stroke-linecap="round" opacity=".8"/>
+    <!-- gills -->
+    <g stroke="color-mix(in srgb,var(--shark) 55%,#000)" stroke-width="2" fill="none" stroke-linecap="round" opacity=".8">
+      <path d="M236 112 q-7 14 -5 30"/><path d="M226 118 q-7 14 -5 30"/><path d="M216 124 q-7 14 -5 30"/>
+    </g>
+    <!-- angry eye -->
+    <circle cx="287" cy="72" r="5" fill="#0b0b0b"/>
+    <circle cx="288.5" cy="70.5" r="1.6" fill="#ff3b3b"/>
+    <path d="M275 61 L298 70" stroke="#0b0b0b" stroke-width="4" stroke-linecap="round"/>
+  </svg>
+  <svg class="splash" viewBox="0 0 200 120">
+    <circle cx="100" cy="100" r="5" fill="var(--sea-1)" style="--sx:-60px;--sy:-70px"/>
+    <circle cx="110" cy="100" r="4" fill="var(--blood)" style="--sx:50px;--sy:-80px"/>
+    <circle cx="90" cy="100" r="3" fill="var(--sea-1)" style="--sx:-90px;--sy:-40px"/>
+    <circle cx="105" cy="100" r="6" fill="var(--sea-1)" style="--sx:20px;--sy:-95px"/>
+    <circle cx="95" cy="100" r="3.5" fill="var(--blood)" style="--sx:-30px;--sy:-100px"/>
+    <circle cx="115" cy="100" r="3" fill="var(--sea-1)" style="--sx:80px;--sy:-50px"/>
+  </svg>
+  <svg class="wave w2" viewBox="0 0 2400 420" preserveAspectRatio="none"><path fill="var(--sea-2)" d="M0 290 Q120 262 240 290 T480 290 T720 290 T960 290 T1200 290 T1440 290 T1680 290 T1920 290 T2160 290 T2400 290 V420 H0Z"/></svg>
+  <svg class="wave w3" viewBox="0 0 2400 420" preserveAspectRatio="none"><path fill="var(--sea-3)" d="M0 330 Q100 312 200 330 T400 330 T600 330 T800 330 T1000 330 T1200 330 T1400 330 T1600 330 T1800 330 T2000 330 T2200 330 T2400 330 V420 H0Z"/></svg>
+</div>
+
+<!-- ================= menu drawer ================= -->
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" aria-label="Menu" aria-hidden="true">
+  <div class="drawer-head"><a href="#cards" class="home" id="homeLink2"><b>Trading Journal</b></a><button class="x" id="closeMenu" type="button" aria-label="Close menu">×</button></div>
+  <nav class="navlist">
+    <a href="#cards" data-view="cards"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="2.5" y="2.5" width="6" height="6" rx="1.5"/><rect x="11.5" y="2.5" width="6" height="6" rx="1.5"/><rect x="2.5" y="11.5" width="6" height="6" rx="1.5"/><rect x="11.5" y="11.5" width="6" height="6" rx="1.5"/></svg><span>Cards<small>Stats and performance tables</small></span></a>
+    <a href="#log" data-view="log"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="3" y="2.5" width="14" height="15" rx="2"/><path d="M6.5 7h7M6.5 10h7M6.5 13h4"/></svg><span>Trade log<small>Every trade, notes and screenshots</small></span></a>
+    <a href="#charts" data-view="charts"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M2.5 16.5h15"/><path d="M4 12l4-4 3 3 5-6"/></svg><span>Charts<small>Equity, monthly R, win rate</small></span></a>
+    <a href="#risk" data-view="risk"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M10 2.5l6 2.5v4.5c0 4-2.6 6.6-6 8-3.4-1.4-6-4-6-8V5z"/><path d="M7.5 10l1.8 1.8L12.8 8"/></svg><span>Risk management<small>Position size, streaks, daily rules</small></span></a>
+  </nav>
+  <div class="dsec">Display</div>
+  <div>
+    <label class="switch" for="darkSw"><span>Dark mode</span><input type="checkbox" id="darkSw"></label>
+    <label class="switch" for="sharkSw"><span>Shark background</span><input type="checkbox" id="sharkSw" checked></label>
+  </div>
+</aside>
+
+<!-- ================= header ================= -->
+<header class="hero">
+  <div class="wrap">
+    <button class="burger" id="openMenu" type="button" aria-label="Open menu" aria-controls="drawer" aria-expanded="false"><span></span></button>
+    <div class="brand">
+      <h1><a href="#cards" class="home" id="homeLink" title="Go to home page">Trading Journal</a></h1>
       <div class="sub" id="status"><span class="dot"></span>Loading trades…</div>
     </div>
+    <nav class="tabs" aria-label="Pages">
+      <a href="#cards" data-view="cards">Cards</a><a href="#log" data-view="log">Trade log</a><a href="#charts" data-view="charts">Charts</a><a href="#risk" data-view="risk">Risk management</a>
+    </nav>
     <div class="tools">
-      <button id="reload" type="button" title="Re-read trades.xlsx">↻ Refresh</button>
-      <button id="pick" type="button" title="Preview a local file without uploading it">Open file…</button>
+      <button id="reload" type="button" title="Re-read trades.xlsx">↻<span class="lbl"> Refresh</span></button>
+      <button id="pick" type="button" title="Preview a local file without uploading it">⇪<span class="lbl"> Open file</span></button>
       <input type="file" id="file" accept=".xlsx,.xls" hidden>
-      <button id="theme" type="button" title="Toggle light/dark">◐ Theme</button>
     </div>
-  </header>
+  </div>
+</header>
 
-  <div class="banner" id="localBanner" hidden><span>Previewing a local file. This view isn't published; push the file to GitHub to update the site.</span><button id="backRemote" type="button">Back to published data</button></div>
+<nav class="filterbar" aria-label="Filters">
+  <div class="wrap">
+    <div class="fg"><span>Market</span><div class="seg" id="fMarket"></div></div>
+    <div class="fg"><span>Period</span><div class="seg" id="fRange">
+      <button type="button" data-v="all">All</button><button type="button" data-v="ytd">YTD</button><button type="button" data-v="90">90D</button><button type="button" data-v="30">30D</button><button type="button" data-v="mtd">This month</button>
+    </div></div>
+    <div class="fg"><span>Direction</span><div class="seg" id="fDir">
+      <button type="button" data-v="all">Both</button><button type="button" data-v="BUY">Buy</button><button type="button" data-v="SELL">Sell</button>
+    </div></div>
+    <div class="fg"><span>Session</span><div class="seg" id="fSession"></div></div>
+    <div class="fb-end"><span class="count" id="count"></span><button type="button" class="linkbtn" id="resetF" hidden>Reset filters</button></div>
+  </div>
+</nav>
 
-  <div id="main"></div>
+<div class="wrap layer">
+  <main>
+    <div class="banner" id="localBanner" hidden><span>Previewing a local file. This view isn't published; push the file to GitHub to update the site.</span><button id="backRemote" type="button">Back to published data</button></div>
+    <div id="msg"></div>
+    <section class="view" id="view-cards" hidden></section>
+    <section class="view" id="view-log" hidden></section>
+    <section class="view" id="view-charts" hidden></section>
+    <section class="view" id="view-risk" hidden></section>
+  </main>
   <footer id="foot"></footer>
 </div>
 <div class="drop" id="drop">Drop your journal (.xlsx) to preview it</div>
@@ -126,33 +394,59 @@ const CONFIG = {
   rValues: { TP: 6, SL: -1, BE: 0 },  // R earned per result (match your Dashboard)
   screenshotFolder: "screenshots",    // image files named in the Screenshot column live here
   cumulativeYears: 3,                 // how many years the Cumulative R table shows
+  contractSizes: { XAUUSD: 100, GBPUSD: 100000, EURUSD: 100000, ETHUSD: 1, BTCUSD: 1 }, // units per 1 lot (check your broker)
   refreshMinutes: 5
 };
 /* ==================================================================== */
 
 const $ = s => document.querySelector(s);
-const state = { trades: [], open: 0, source: "remote", year: null, sort: { key: "no", dir: -1 } };
+const DEFAULT_F = { market: "all", range: "all", dir: "all", session: "all" };
+const DEFAULT_RISK = { balance: 10000, riskPct: 1, maxTrades: 3, dailyLoss: 2, psMarket: "XAUUSD", entry: "", stop: "", contract: "" };
+const state = { trades: [], source: "remote", lastMod: null, year: null, view: "cards", f: { ...DEFAULT_F }, risk: { ...DEFAULT_RISK }, sort: { key: "no", dir: -1 } };
+const load = (k, d) => { try { return Object.assign(d, JSON.parse(localStorage.getItem(k) || "{}")); } catch (e) { return d; } };
+const store = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
+load("tj-filters", state.f); load("tj-risk", state.risk);
 const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-const DAYS = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const charts = {};
+const VIEWS = ["cards", "log", "charts", "risk"];
 
-/* ---------- theme ---------- */
+/* ---------- theme & shark ---------- */
+const isDark = () => (document.documentElement.getAttribute("data-theme") || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")) === "dark";
 try { const t = localStorage.getItem("tj-theme"); if (t) document.documentElement.setAttribute("data-theme", t); } catch (e) {}
-$("#theme").onclick = () => {
-  const cur = document.documentElement.getAttribute("data-theme") || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
-  const t = cur === "dark" ? "light" : "dark";
-  document.documentElement.setAttribute("data-theme", t);
-  try { localStorage.setItem("tj-theme", t); } catch (e) {}
-};
+try { if (localStorage.getItem("tj-shark") === "off") document.body.classList.add("no-shark"); } catch (e) {}
+$("#darkSw").checked = isDark(); $("#sharkSw").checked = !document.body.classList.contains("no-shark");
+$("#darkSw").onchange = e => { const t = e.target.checked ? "dark" : "light"; document.documentElement.setAttribute("data-theme", t); try { localStorage.setItem("tj-theme", t); } catch (er) {} if (state.view === "charts") renderCharts(filtered()); };
+$("#sharkSw").onchange = e => { document.body.classList.toggle("no-shark", !e.target.checked); try { localStorage.setItem("tj-shark", e.target.checked ? "on" : "off"); } catch (er) {} };
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { $("#darkSw").checked = isDark(); if (state.view === "charts") renderCharts(filtered()); });
+
+/* ---------- menu & views ---------- */
+function openMenu(o) { document.body.classList.toggle("menu-open", o); $("#drawer").setAttribute("aria-hidden", !o); $("#openMenu").setAttribute("aria-expanded", o); if (o) $("#closeMenu").focus(); }
+$("#openMenu").onclick = () => openMenu(true); $("#closeMenu").onclick = () => openMenu(false); $("#scrim").onclick = () => openMenu(false);
+addEventListener("keydown", e => { if (e.key === "Escape") openMenu(false); });
+document.querySelectorAll("[data-view]").forEach(a => a.addEventListener("click", e => { e.preventDefault(); setView(a.dataset.view); openMenu(false); }));
+function setView(v, push = true) {
+  if (!VIEWS.includes(v)) v = "cards";
+  state.view = v;
+  document.querySelectorAll("[data-view]").forEach(a => a.dataset.view === v ? a.setAttribute("aria-current", "page") : a.removeAttribute("aria-current"));
+  if (push) try { history.replaceState(null, "", "#" + v); } catch (e) {}
+  render(true);
+  scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" });
+}
+["#homeLink", "#homeLink2"].forEach(id => $(id).addEventListener("click", e => { e.preventDefault(); openMenu(false); setView("cards"); }));
+addEventListener("hashchange", () => { const v = location.hash.slice(1); if (v && v !== state.view) setView(v, false); });
 
 /* ---------- formatting ---------- */
-const fmtR = v => (v < 0 ? "-" : "") + Math.abs(v).toFixed(2) + "R";
-const rCls = v => v > 0.0000001 ? "pos" : v < -0.0000001 ? "neg" : "zero";
+const fmtR = (v, sign) => (v < -1e-9 ? "−" : sign && v > 1e-9 ? "+" : "") + Math.abs(v).toFixed(2) + "R";
+const rCls = v => v > 1e-9 ? "pos" : v < -1e-9 ? "neg" : "zero";
 const pct = v => v == null || !isFinite(v) ? "" : (v * 100).toFixed(1) + "%";
+const money = v => (v < 0 ? "−$" : "$") + Math.abs(v).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const pad = n => String(n).padStart(2, "0");
 const ymd = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 const bePct = () => Math.abs(CONFIG.rValues.SL) / (CONFIG.rValues.TP + Math.abs(CONFIG.rValues.SL));
-$("#foot").innerHTML = `Reads <code id="srcName">${CONFIG.file}</code> on every load and every ${CONFIG.refreshMinutes} minutes. TP = +${CONFIG.rValues.TP}R, SL = ${CONFIG.rValues.SL}R, BE = 0R. Win rate = wins ÷ closed trades. Rows with a date but no result count as open trades.`;
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+$("#foot").innerHTML = `Reads <code id="srcName">${CONFIG.file}</code> on every load and every ${CONFIG.refreshMinutes} minutes. TP = +${CONFIG.rValues.TP}R, SL = ${CONFIG.rValues.SL}R, BE = 0R. Win rate = wins ÷ closed trades. A row with a date but no result counts as an open trade.`;
 
 /* ---------- parsing ---------- */
 const ALIASES = {
@@ -187,13 +481,12 @@ function parseWorkbook(buf) {
   const range = XLSX.utils.decode_range(ws["!ref"]);
   const g = (r, k) => col[k] == null ? null : r[col[k]];
   const rv = Object.fromEntries(Object.entries(CONFIG.rValues).map(([k, v]) => [k.toUpperCase(), v]));
-  const out = []; let open = 0;
+  const out = [];
   rows.slice(hi + 1).forEach((r, i) => {
     const d = toDate(g(r, "date")); if (!d) return;
     const res = String(g(r, "result") ?? "").trim().toUpperCase();
     const isOpen = !res || res === "OPEN";
     if (!isOpen && !(res in rv)) return;
-    if (isOpen) open++;
     const excelRow = range.s.r + hi + 2 + i;
     let shot = null;
     if (col.screenshot != null) {
@@ -216,43 +509,41 @@ function parseWorkbook(buf) {
     });
   });
   out.sort((a, b) => a.date - b.date || a.no - b.no);
-  return { trades: out, open };
+  return out;
 }
 
 /* ---------- loading ---------- */
-async function loadRemote() {
-  setStatus("Loading trades…");
+async function loadRemote(auto = false) {
+  if (!auto) setStatus("Loading trades…");
   try {
     const res = await fetch(CONFIG.file + "?t=" + Date.now(), { cache: "no-store" });
     if (!res.ok) throw new Error(`Couldn't load ${CONFIG.file} (HTTP ${res.status}). Make sure it's committed next to index.html.`);
     const lm = res.headers.get("last-modified");
-    apply(parseWorkbook(await res.arrayBuffer()));
+    if (auto && lm && lm === state.lastMod) return;          // nothing new: don't re-animate
+    state.lastMod = lm;
+    apply(parseWorkbook(await res.arrayBuffer()), !auto);
     state.source = "remote"; $("#localBanner").hidden = true; $("#srcName").textContent = CONFIG.file;
-    setStatus(`${state.trades.length} trades · ${lm ? "file updated " + new Date(lm).toLocaleString() : "loaded " + new Date().toLocaleTimeString()}`, "ok");
+    setStatus(`${state.trades.length} trades · ${lm ? "updated " + new Date(lm).toLocaleString() : "loaded " + new Date().toLocaleTimeString()}`, "ok");
   } catch (err) {
     setStatus("Couldn't load data", "err");
-    if (location.protocol === "file:") err = new Error("Browsers block reading files when the page is opened straight from disk. Use “Open file…” to preview, or view the published GitHub Pages site.");
-    $("#main").innerHTML = `<div class="error"><h2>Data didn't load</h2><div>${esc(err.message)}</div></div>`;
+    if (location.protocol === "file:") err = new Error("Browsers block reading files when the page is opened straight from disk. Use “Open file” to preview, or view the published GitHub Pages site.");
+    showMsg(`<div class="error"><h2>Data didn't load</h2><div>${esc(err.message)}</div></div>`);
   }
 }
 function loadLocal(file) {
   const fr = new FileReader();
   fr.onload = () => {
     try {
-      apply(parseWorkbook(new Uint8Array(fr.result)));
+      apply(parseWorkbook(new Uint8Array(fr.result)), true);
       state.source = "local"; $("#localBanner").hidden = false; $("#srcName").textContent = file.name;
       setStatus(`${state.trades.length} trades · local preview of ${file.name}`, "ok");
-    } catch (err) { $("#main").innerHTML = `<div class="error"><h2>Couldn't read that file</h2><div>${esc(err.message)}</div></div>`; }
+    } catch (err) { showMsg(`<div class="error"><h2>Couldn't read that file</h2><div>${esc(err.message)}</div></div>`); }
   };
   fr.readAsArrayBuffer(file);
 }
-function apply({ trades, open }) {
-  state.trades = trades; state.open = open;
-  const years = yearsInData();
-  if (!years.includes(state.year)) state.year = years.length ? years[years.length - 1] : new Date().getFullYear();
-  render();
-}
+function apply(trades, animate) { state.trades = trades; buildFilters(); render(animate); }
 function setStatus(t, kind) { $("#status").innerHTML = `<span class="dot ${kind || ""}"></span>${esc(t)}`; }
+function showMsg(html) { $("#msg").innerHTML = html; document.querySelectorAll(".view").forEach(v => v.hidden = true); }
 $("#reload").onclick = () => { if (state.source === "remote") loadRemote(); };
 $("#backRemote").onclick = () => loadRemote();
 $("#pick").onclick = () => $("#file").click();
@@ -262,131 +553,380 @@ addEventListener("dragenter", e => { e.preventDefault(); dragN++; $("#drop").cla
 addEventListener("dragleave", () => { if (--dragN <= 0) { dragN = 0; $("#drop").classList.remove("on"); } });
 addEventListener("dragover", e => e.preventDefault());
 addEventListener("drop", e => { e.preventDefault(); dragN = 0; $("#drop").classList.remove("on"); const f = e.dataTransfer.files[0]; if (f) loadLocal(f); });
-setInterval(() => { if (state.source === "remote" && !document.hidden) loadRemote(); }, CONFIG.refreshMinutes * 60000);
+setInterval(() => { if (state.source === "remote" && !document.hidden) loadRemote(true); }, CONFIG.refreshMinutes * 60000);
+
+/* ---------- filters ---------- */
+function segButtons(id, values, key) {
+  if (!values.includes(state.f[key]) && state.f[key] !== "all") state.f[key] = "all";
+  $(id).innerHTML = [["all", "All"]].concat(values.map(v => [v, v])).map(([v, l]) => `<button type="button" data-v="${esc(v)}">${esc(l)}</button>`).join("");
+}
+function buildFilters() {
+  const uniq = k => [...new Set(state.trades.map(t => t[k]).filter(v => v && v !== "—"))];
+  const order = ["Asia", "London", "New York"];
+  segButtons("#fMarket", uniq("market").sort(), "market");
+  segButtons("#fSession", uniq("session").sort((a, b) => ((order.indexOf(a) + 1) || 99) - ((order.indexOf(b) + 1) || 99) || a.localeCompare(b)), "session");
+  syncFilterUI();
+}
+const FILTERS = [["#fMarket", "market"], ["#fRange", "range"], ["#fDir", "dir"], ["#fSession", "session"]];
+function syncFilterUI() {
+  FILTERS.forEach(([id, k]) => $(id).querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", b.dataset.v === state.f[k])));
+  $("#resetF").hidden = isAll();
+}
+FILTERS.forEach(([id, k]) => $(id).addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; state.f[k] = b.dataset.v; store("tj-filters", state.f); syncFilterUI(); render(false); }));
+$("#resetF").onclick = () => { state.f = { ...DEFAULT_F }; store("tj-filters", state.f); syncFilterUI(); render(false); };
+const isAll = () => Object.keys(DEFAULT_F).every(k => state.f[k] === "all");
+function filtered() {
+  const now = new Date(); let from = null; const f = state.f;
+  if (f.range === "ytd") from = new Date(now.getFullYear(), 0, 1);
+  else if (f.range === "mtd") from = new Date(now.getFullYear(), now.getMonth(), 1);
+  else if (f.range === "30" || f.range === "90") { from = new Date(now); from.setHours(0, 0, 0, 0); from.setDate(from.getDate() - (+f.range) + 1); }
+  return state.trades.filter(t => (f.market === "all" || t.market === f.market) && (f.dir === "all" || t.direction === f.dir)
+    && (f.session === "all" || t.session === f.session) && (!from || t.date >= from));
+}
 
 /* ---------- stats ---------- */
 function stats(ts) {
   const c = ts.filter(t => t.closed);
   const wins = c.filter(t => t.result === "TP").length, losses = c.filter(t => t.result === "SL").length, be = c.filter(t => t.result === "BE").length;
   const gw = c.filter(t => t.r > 0).reduce((s, t) => s + t.r, 0), gl = -c.filter(t => t.r < 0).reduce((s, t) => s + t.r, 0);
-  let curW = 0, curL = 0, maxW = 0, maxL = 0;
+  let curW = 0, curL = 0, maxW = 0, maxL = 0, eq = 0, peak = 0, maxDD = 0;
   for (const t of c) {
+    eq += t.r; peak = Math.max(peak, eq); maxDD = Math.max(maxDD, peak - eq);
     if (t.result === "TP") { curW++; curL = 0; } else if (t.result === "SL") { curL++; curW = 0; }
     maxW = Math.max(maxW, curW); maxL = Math.max(maxL, curL);
   }
-  return { n: c.length, wins, losses, be, net: gw - gl, gw, gl,
+  return { n: c.length, open: ts.length - c.length, wins, losses, be, net: gw - gl, gw, gl,
     winRate: c.length ? wins / c.length : null, exp: c.length ? (gw - gl) / c.length : null,
-    pf: gl > 0 ? gw / gl : (gw > 0 ? Infinity : null), maxW, maxL };
+    pf: gl > 0 ? gw / gl : (gw > 0 ? Infinity : null), maxW, maxL, maxDD, curDD: peak - eq, curW, curL };
 }
-const yearsInData = () => [...new Set(state.trades.filter(t => t.closed).map(t => t.date.getFullYear()))].sort();
+const wrCell = wr => wr == null ? `<td class="wr"></td>` : `<td class="wr"><span class="${wr >= bePct() ? "good" : "bad"}">${pct(wr)}</span></td>`;
+const scope = () => `<span class="scope">${isAll() ? "All-time" : "Filtered"}</span>`;
+
+/* ---------- animation helpers ---------- */
+function reveal(root, animate) {
+  if (!animate || reduceMotion) return;
+  [...root.querySelectorAll(":scope > *, :scope > .cards > *, :scope > .grid > *, :scope > .charts > *, :scope > .riskgrid > *")]
+    .forEach((el, i) => { el.classList.remove("reveal"); void el.offsetWidth; el.style.setProperty("--d", Math.min(i * 45, 600) + "ms"); el.classList.add("reveal"); });
+}
+function countUp(el, to, fmt, ms = 900) {
+  if (reduceMotion || !isFinite(to)) { el.textContent = fmt(to); return; }
+  const t0 = performance.now();
+  const step = now => { const p = Math.min(1, (now - t0) / ms), e = 1 - Math.pow(1 - p, 3); el.textContent = fmt(to * e); if (p < 1) requestAnimationFrame(step); };
+  requestAnimationFrame(step);
+}
 
 /* ---------- render ---------- */
-function render() {
-  const main = $("#main");
+function render(animate) {
   if (!state.trades.length) {
-    main.innerHTML = `<div class="empty"><h2>No trades yet</h2><div>Log your first trade in <code>${esc(CONFIG.file)}</code> (Date and Result), save, and push it to GitHub.</div></div>`;
+    $("#count").textContent = "";
+    if (!$("#status .dot.err")) showMsg(`<div class="empty"><h2>No trades yet</h2><div>Log your first trade in <code>${esc(CONFIG.file)}</code> (Date and Result), save, and push it to GitHub.</div></div>`);
     return;
   }
-  main.innerHTML = `
-    <section class="grid row1">
-      <div class="tbl monthly" id="tMonthly"></div>
-      <div class="tbl" id="tCum"></div>
-      <div class="tbl" id="tSummary"></div>
-    </section>
-    <section class="grid row2">
-      <div class="tbl" id="tDir"></div>
-      <div class="tbl" id="tMarket"></div>
-      <div class="tbl" id="tSession"></div>
-    </section>
-    <section class="tbl log" id="tLog"></section>`;
-  renderMonthly(); renderCumulative(); renderSummary();
-  renderGroup("#tDir", "Performance by Direction (all-time)", "Direction", "direction", ["BUY", "SELL"]);
-  renderGroup("#tMarket", "Performance by Market (all-time)", "Market", "market");
-  renderGroup("#tSession", "Performance by Session (all-time)", "Session", "session", ["Asia", "London", "New York"]);
-  renderLog();
+  $("#msg").innerHTML = "";
+  const ts = filtered();
+  $("#count").textContent = `${ts.length} of ${state.trades.length} trades`;
+  document.querySelectorAll(".view").forEach(v => v.hidden = v.id !== "view-" + state.view);
+  if (!ts.length) { $("#view-" + state.view).innerHTML = `<div class="empty"><h2>No trades match these filters</h2><div>Try a wider period, or reset the filters.</div></div>`; return; }
+  if (state.view === "cards") renderCardsView(ts);
+  else if (state.view === "log") renderLogView(ts);
+  else if (state.view === "charts") renderChartsView(ts);
+  else renderRiskView(ts);
+  reveal($("#view-" + state.view), animate);
 }
-const dash = n => n ? n : "-";
-function renderMonthly() {
-  const years = yearsInData(); const y = state.year;
-  const ts = state.trades.filter(t => t.date.getFullYear() === y);
-  const be = bePct();
+
+/* ================= CARDS VIEW ================= */
+function renderCardsView(ts) {
+  const years = [...new Set(ts.filter(t => t.closed).map(t => t.date.getFullYear()))].sort();
+  if (!years.includes(state.year)) state.year = years.length ? years[years.length - 1] : new Date().getFullYear();
+  $("#view-cards").innerHTML = `
+    <section class="cards" id="cards"></section>
+    <section class="grid row1"><div class="tbl monthly" id="tMonthly"></div><div class="tbl" id="tCum"></div><div class="tbl" id="tSummary"></div></section>
+    <section class="grid row2"><div class="tbl" id="tDir"></div><div class="tbl" id="tMarket"></div><div class="tbl" id="tSession"></div><div class="tbl" id="tSetup"></div></section>`;
+  renderCards(ts); renderMonthly(ts, years); renderCumulative(ts, years); renderSummary(ts);
+  renderGroup(ts, "#tDir", "Performance by Direction", "Direction", "direction", ["BUY", "SELL"]);
+  renderGroup(ts, "#tMarket", "Performance by Market", "Market", "market");
+  renderGroup(ts, "#tSession", "Performance by Session", "Session", "session", ["Asia", "London", "New York"]);
+  renderGroup(ts, "#tSetup", "Performance by Setup", "Setup", "setup");
+}
+function renderCards(ts) {
+  const s = stats(ts), be = bePct();
+  const byM = new Map(); ts.filter(t => t.closed).forEach(t => { const k = t.date.getFullYear() * 12 + t.date.getMonth(); byM.set(k, (byM.get(k) || 0) + t.r); });
+  const ms = [...byM.entries()]; const best = ms.length ? ms.reduce((a, b) => b[1] > a[1] ? b : a) : null, worst = ms.length ? ms.reduce((a, b) => b[1] < a[1] ? b : a) : null;
+  const mName = k => MONTHS[k % 12].slice(0, 3) + " " + String(Math.floor(k / 12)).slice(2);
+  const edge = s.winRate == null ? null : s.winRate - be;
+  const pfTxt = v => v == null ? "—" : v === Infinity ? "∞" : v.toFixed(2) + "x";
+  const accent = v => v == null ? "transparent" : v >= 0 ? "var(--pos)" : "var(--neg)";
+  const C = [
+    { k: "Net result", n: s.net, f: v => fmtR(v, true), c: rCls(s.net), a: accent(s.net), h: `${s.n} closed trade${s.n === 1 ? "" : "s"}${s.open ? ` · ${s.open} open` : ""}` },
+    { k: "Win rate", n: s.winRate == null ? null : s.winRate * 100, f: v => v == null ? "—" : v.toFixed(1) + "%", c: edge == null ? "" : edge >= 0 ? "pos" : "neg", a: accent(edge), h: `${s.wins} TP · ${s.losses} SL · ${s.be} BE`, meter: true },
+    { k: "Edge over break-even", n: edge == null ? null : edge * 100, f: v => v == null ? "—" : (v >= 0 ? "+" : "−") + Math.abs(v).toFixed(1) + " pts", c: edge == null ? "" : edge >= 0 ? "pos" : "neg", a: accent(edge), h: `break-even is ${pct(be)} at 1:${CONFIG.rValues.TP}` },
+    { k: "Expectancy", n: s.exp, f: v => v == null ? "—" : fmtR(v, true), c: s.exp == null ? "" : rCls(s.exp), a: accent(s.exp), h: "average R per closed trade" },
+    { k: "Profit factor", n: s.pf === Infinity ? null : s.pf, f: v => s.pf === Infinity ? "∞" : pfTxt(v), c: s.pf == null ? "" : s.pf >= 1 ? "pos" : "neg", a: s.pf == null ? "transparent" : accent(s.pf - 1), h: `${fmtR(s.gw)} won · ${fmtR(s.gl)} lost` },
+    { k: "Max drawdown", n: -s.maxDD, f: v => fmtR(v), c: s.maxDD ? "neg" : "zero", a: s.maxDD ? "var(--neg)" : "transparent", h: `now ${fmtR(-s.curDD)} from peak` },
+    { k: "Best / worst month", t: best ? `${fmtR(best[1], true)} / ${fmtR(worst[1], true)}` : "—", h: best ? `${mName(best[0])} · ${mName(worst[0])}` : "", a: "var(--navy-2)" },
+    { k: "Streaks", t: `${s.maxW}W / ${s.maxL}L`, h: s.curL ? `on a ${s.curL}-loss run now` : s.curW ? `on a ${s.curW}-win run now` : "longest TP / SL runs", a: "var(--navy-2)" }
+  ];
+  $("#cards").innerHTML = C.map((c, i) => `<div class="card" style="--accent:${c.a}"><div class="k">${c.k}</div><div class="v ${c.c || ""}" id="cv${i}">${c.t ?? c.f(c.n)}</div><div class="h">${c.h || "&nbsp;"}</div>${c.meter ? `<div class="meter" title="Tick marks the ${pct(be)} break-even win rate"><i id="wrMeter" style="background:${edge != null && edge >= 0 ? "var(--pos)" : "var(--neg)"}"></i><b style="left:calc(${be * 100}% - 1px)"></b></div>` : ""}</div>`).join("");
+  C.forEach((c, i) => { if (c.t == null && c.n != null) countUp($("#cv" + i), c.n, c.f); });
+  requestAnimationFrame(() => requestAnimationFrame(() => { const m = $("#wrMeter"); if (m) m.style.width = Math.min(100, (s.winRate || 0) * 100) + "%"; }));
+}
+const dash = n => n ? n : "–";
+function renderMonthly(ts, years) {
+  const y = state.year, yt = ts.filter(t => t.date.getFullYear() === y), be = bePct();
   const rows = MONTHS.map((m, i) => {
-    const s = stats(ts.filter(t => t.date.getMonth() === i));
-    const wr = s.n ? `<td class="${s.winRate >= be ? "good" : "bad"}">${pct(s.winRate)}</td>` : `<td></td>`;
-    return `<tr><td>${m}</td><td>${dash(s.n)}</td><td>${dash(s.wins)}</td><td>${dash(s.losses)}</td>${wr}<td class="m ${rCls(s.net)}">${fmtR(s.net)}</td><td class="muted">${pct(be)}</td></tr>`;
+    const s = stats(yt.filter(t => t.date.getMonth() === i));
+    return `<tr><td>${m}</td><td>${dash(s.n)}</td><td>${dash(s.wins)}</td><td>${dash(s.losses)}</td>${wrCell(s.n ? s.winRate : null)}<td class="m r ${rCls(s.net)}">${fmtR(s.net)}</td><td class="muted">${pct(be)}</td></tr>`;
   }).join("");
-  const s = stats(ts);
-  const sel = years.length > 1 ? `<select id="yearSel" aria-label="Year">${years.map(v => `<option ${v === y ? "selected" : ""}>${v}</option>`).join("")}</select>` : "";
-  $("#tMonthly").innerHTML = `<div class="title"><span>Monthly Performance - ${y}</span>${sel}</div><div class="scroll"><table>
+  const s = stats(yt);
+  const sel = years.length > 1 ? `<select id="yearSel" aria-label="Year">${years.map(v => `<option ${v === y ? "selected" : ""}>${v}</option>`).join("")}</select>` : scope();
+  $("#tMonthly").innerHTML = `<div class="title"><h3>Monthly Performance – ${y}</h3>${sel}</div><div class="scroll"><table>
     <thead><tr><th>Month</th><th>Trades</th><th>Wins</th><th>Losses</th><th>Win Rate</th><th class="m">Net R</th><th>B/E Win %</th></tr></thead>
     <tbody>${rows}</tbody>
-    <tfoot><tr class="total"><td>Total</td><td>${s.n}</td><td>${s.wins}</td><td>${s.losses}</td><td>${pct(s.winRate)}</td><td class="m ${rCls(s.net)}">${fmtR(s.net)}</td><td></td></tr></tfoot>
+    <tfoot><tr><td>Total</td><td>${s.n}</td><td>${s.wins}</td><td>${s.losses}</td>${wrCell(s.winRate)}<td class="m r ${rCls(s.net)}">${fmtR(s.net)}</td><td></td></tr></tfoot>
   </table></div>`;
-  const ys = $("#yearSel"); if (ys) ys.onchange = () => { state.year = +ys.value; renderMonthly(); };
+  const ys = $("#yearSel"); if (ys) ys.onchange = () => { state.year = +ys.value; renderMonthly(ts, years); };
 }
-function renderCumulative() {
-  const data = yearsInData(); const last = data.length ? data[data.length - 1] : new Date().getFullYear();
-  const years = []; for (let y = last; years.length < CONFIG.cumulativeYears; y--) years.push(y);
+function renderCumulative(ts, years) {
+  const last = years.length ? years[years.length - 1] : new Date().getFullYear();
+  const ys = []; for (let y = last; ys.length < CONFIG.cumulativeYears; y--) ys.push(y);
   const now = new Date();
-  const cols = years.map(y => {
-    const ts = state.trades.filter(t => t.closed && t.date.getFullYear() === y);
-    const lastMonth = y === now.getFullYear() ? now.getMonth() : 11;   // leave future months blank
+  const totals = [];
+  const cols = ys.map(y => {
+    const yt = ts.filter(t => t.closed && t.date.getFullYear() === y);
+    totals.push(yt.reduce((s, t) => s + t.r, 0));
+    const lastMonth = y === now.getFullYear() ? now.getMonth() : 11;   // future months stay blank
     let run = 0;
-    return MONTHS.map((_, i) => { run += ts.filter(t => t.date.getMonth() === i).reduce((s, t) => s + t.r, 0); return i <= lastMonth ? run : null; });
+    return MONTHS.map((_, i) => { run += yt.filter(t => t.date.getMonth() === i).reduce((s, t) => s + t.r, 0); return i <= lastMonth ? run : null; });
   });
-  $("#tCum").innerHTML = `<div class="title"><span>Cumulative R by Month</span></div><div class="scroll"><table>
-    <thead><tr><th>Month</th>${years.map(y => `<th class="m">${y}</th>`).join("")}</tr></thead>
-    <tbody>${MONTHS.map((m, i) => `<tr><td>${m}</td>${cols.map(c => c[i] == null ? `<td></td>` : `<td class="m ${rCls(c[i])}">${fmtR(c[i])}</td>`).join("")}</tr>`).join("")}</tbody>
+  $("#tCum").innerHTML = `<div class="title"><h3>Cumulative R by Month</h3>${scope()}</div><div class="scroll"><table>
+    <thead><tr><th>Month</th>${ys.map(y => `<th class="m">${y}</th>`).join("")}</tr></thead>
+    <tbody>${MONTHS.map((m, i) => `<tr><td>${m}</td>${cols.map(c => c[i] == null ? `<td></td>` : `<td class="m r ${rCls(c[i])}">${fmtR(c[i])}</td>`).join("")}</tr>`).join("")}</tbody>
+    <tfoot><tr><td>Total</td>${totals.map(v => `<td class="m r ${rCls(v)}">${fmtR(v)}</td>`).join("")}</tr></tfoot>
   </table></div>`;
 }
-function renderSummary() {
-  const s = stats(state.trades), be = bePct();
+function renderSummary(ts) {
+  const s = stats(ts), be = bePct();
   const pf = s.pf == null ? "—" : s.pf === Infinity ? "∞" : s.pf.toFixed(2) + "x";
-  const rows = [
-    ["Closed Trades", s.n], ["Wins (TP)", s.wins], ["Losses (SL)", s.losses], ["Breakeven", s.be],
-    ["Win Rate", pct(s.winRate) || "—", s.winRate == null ? "" : s.winRate >= be ? "good" : "bad"],
-    ["Break-even Win Rate", pct(be), "pos"],
-    ["Total R", fmtR(s.net), rCls(s.net)], ["Expectancy (Avg R / trade)", s.exp == null ? "—" : fmtR(s.exp), s.exp == null ? "" : rCls(s.exp)],
-    ["Profit Factor", pf], ["Longest Win Streak", s.maxW], ["Longest Loss Streak", s.maxL], ["Open Trades", state.open]
-  ];
-  $("#tSummary").innerHTML = `<div class="title"><span>Performance Summary (all-time)</span></div><table class="summary"><tbody>
-    ${rows.map(([k, v, c]) => `<tr><td>${k}</td><td class="${c || ""}">${v}</td></tr>`).join("")}</tbody></table>`;
+  const row = (k, v, c = "") => `<tr><td>${k}</td><td class="${c}">${v}</td></tr>`;
+  $("#tSummary").innerHTML = `<div class="title"><h3>Performance Summary</h3>${scope()}</div><table class="summary"><tbody>
+    ${row("Closed Trades", s.n)}${row("Wins (TP)", s.wins)}${row("Losses (SL)", s.losses)}${row("Breakeven", s.be)}
+    <tr><td>Win Rate</td>${wrCell(s.winRate)}</tr>
+    ${row("Break-even Win Rate", pct(be), "pos")}
+    ${row("Total R", fmtR(s.net), "r " + rCls(s.net))}
+    ${row("Expectancy (Avg R / trade)", s.exp == null ? "—" : fmtR(s.exp), s.exp == null ? "" : "r " + rCls(s.exp))}
+    ${row("Profit Factor", pf)}${row("Longest Win Streak", s.maxW)}${row("Longest Loss Streak", s.maxL)}${row("Open Trades", s.open)}
+  </tbody></table>`;
 }
-function renderGroup(sel, title, label, key, order) {
-  const closed = state.trades.filter(t => t.closed);
-  let keys = [...new Set(closed.map(t => t[key]))];
+function groupKeys(closed, key, order) {
+  const keys = [...new Set(closed.map(t => t[key]))]; const cnt = k => closed.filter(t => t[key] === k).length;
   if (order) keys.sort((a, b) => ((order.indexOf(a) + 1) || 99) - ((order.indexOf(b) + 1) || 99) || String(a).localeCompare(b));
-  else keys.sort((a, b) => closed.filter(t => t[key] === b).length - closed.filter(t => t[key] === a).length || String(a).localeCompare(b));
-  const rows = keys.map(k => {
-    const s = stats(closed.filter(t => t[key] === k));
-    return `<tr><td>${esc(k)}</td><td>${s.n}</td><td>${s.wins}</td><td>${s.losses}</td><td>${pct(s.winRate)}</td><td class="m ${rCls(s.net)}">${fmtR(s.net)}</td></tr>`;
-  }).join("");
-  $(sel).innerHTML = `<div class="title"><span>${title}</span></div><div class="scroll"><table>
-    <thead><tr><th>${label}</th><th>Trades</th><th>Wins</th><th>Losses</th><th>Win Rate</th><th class="m">Net R</th></tr></thead>
-    <tbody>${rows || `<tr><td colspan="6" class="muted">No closed trades yet</td></tr>`}</tbody></table></div>`;
+  else keys.sort((a, b) => cnt(b) - cnt(a) || String(a).localeCompare(b));
+  return keys;
 }
-
-/* ---------- trade log ---------- */
+function renderGroup(ts, sel, title, label, key, order) {
+  const closed = ts.filter(t => t.closed);
+  const rows = groupKeys(closed, key, order).map(k => {
+    const s = stats(closed.filter(t => t[key] === k));
+    return `<tr><td>${esc(k)}</td><td>${s.n}</td><td>${s.wins}</td><td>${s.losses}</td>${wrCell(s.winRate)}<td class="m r ${rCls(s.net)}">${fmtR(s.net)}</td></tr>`;
+  }).join("");
+  $(sel).innerHTML = `<div class="title"><h3>${title}</h3>${scope()}</div><div class="scroll"><table>
+    <thead><tr><th>${label}</th><th>Trades</th><th>Wins</th><th>Losses</th><th>Win Rate</th><th class="m">Net R</th></tr></thead>
+    <tbody>${rows || `<tr><td colspan="6" class="none">No closed trades in this view</td></tr>`}</tbody></table></div>`;
+}
 const LEFT = ["market", "direction", "session", "setup", "notes", "shot"];
 const COLS = [
-  ["no", "Trade No", t => t.no], ["date", "Date", t => ymd(t.date)], ["time", "Time", t => t.hasTime ? pad(t.date.getHours()) + ":" + pad(t.date.getMinutes()) : ""],
+  ["no", "#", t => t.no], ["date", "Date", t => ymd(t.date)], ["time", "Time", t => t.hasTime ? pad(t.date.getHours()) + ":" + pad(t.date.getMinutes()) : ""],
   ["market", "Market", t => esc(t.market)], ["direction", "Direction", t => esc(t.direction)], ["session", "Session", t => esc(t.session)],
-  ["setup", "Setup", t => esc(t.setup)], ["result", "Result", t => `<span class="pill ${t.result}">${t.result === "OPEN" ? "Open" : esc(t.result)}</span>`],
-  ["r", "R", t => t.closed ? `<span class="${rCls(t.r)}">${fmtR(t.r)}</span>` : ""], ["notes", "Notes", t => esc(t.notes)],
+  ["setup", "Setup", t => esc(t.setup)], ["result", "Result", t => `<span class="pill ${t.result}">${esc(t.result)}</span>`],
+  ["r", "R", t => t.closed ? `<span class="${rCls(t.r)}">${fmtR(t.r, true)}</span>` : ""], ["notes", "Notes", t => esc(t.notes)],
   ["shot", "Screenshot", t => t.shot ? `<a href="${esc(t.shot)}" target="_blank" rel="noopener">View ↗</a>` : ""]
 ];
-function renderLog() {
+function renderLogView(ts) {
+  const s = stats(ts), shots = ts.filter(t => t.shot).length;
+  $("#view-log").innerHTML = `<div class="viewhead"><h2>Trade log</h2><p>${ts.length} trade${ts.length === 1 ? "" : "s"} · ${s.wins} TP · ${s.losses} SL · ${s.be} BE${s.open ? " · " + s.open + " open" : ""} · ${shots} with screenshots</p></div>
+    <section class="tbl log" id="tLog"></section>`;
+  renderLog(ts);
+}
+function renderLog(ts) {
   const { key, dir } = state.sort;
   const val = (t, k) => k === "time" ? (t.hasTime ? t.date.getHours() * 60 + t.date.getMinutes() : null) : t[k];
-  const rows = [...state.trades].sort((a, b) => { const x = val(a, key), y = val(b, key); if (x == null || x === "") return 1; if (y == null || y === "") return -1; return (x > y ? 1 : x < y ? -1 : 0) * dir; });
-  $("#tLog").innerHTML = `<div class="title"><span>Trade Log</span><span style="font-weight:400;font-size:12px;opacity:.85">Click a column to sort</span></div>
+  const rows = [...ts].sort((a, b) => { const x = val(a, key), y = val(b, key); if (x == null || x === "") return 1; if (y == null || y === "") return -1; return (x > y ? 1 : x < y ? -1 : 0) * dir; });
+  $("#tLog").innerHTML = `<div class="title"><h3>Trade Log</h3><span class="scope">Click a column to sort</span></div>
     <div class="logwrap"><table>
     <thead><tr>${COLS.map(([k, l]) => `<th data-k="${k}" class="${LEFT.includes(k) ? "l" : ""}">${l}${k === key ? (dir > 0 ? " ↑" : " ↓") : ""}</th>`).join("")}</tr></thead>
-    <tbody>${rows.map(t => `<tr>${COLS.map(([k, , f]) => `<td class="${k === "notes" ? "notes" : LEFT.includes(k) ? "l" : ""}">${f(t)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+    <tbody>${rows.map(t => `<tr>${COLS.map(([k, , f]) => `<td class="${k === "notes" ? "notes l" : LEFT.includes(k) ? "l" : k === "r" ? "r" : ""}">${f(t)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
   $("#tLog thead").onclick = e => { const th = e.target.closest("th"); if (!th) return; const k = th.dataset.k;
-    state.sort = { key: k, dir: state.sort.key === k ? -state.sort.dir : (["no", "date", "r"].includes(k) ? -1 : 1) }; renderLog(); };
+    state.sort = { key: k, dir: state.sort.key === k ? -state.sort.dir : (["no", "date", "r"].includes(k) ? -1 : 1) }; renderLog(ts); };
 }
 
+/* ================= CHARTS VIEW ================= */
+function renderChartsView(ts) {
+  $("#view-charts").innerHTML = `
+    <div class="viewhead"><h2>Charts</h2><p>${isAll() ? "All trades" : "Filtered trades"} · hover any chart for details</p></div>
+    <section class="charts">
+      <div class="chartcard wide"><h3>Equity curve</h3><div class="cap">Cumulative R, trade by trade</div><div class="cbox tall"><canvas id="cEq"></canvas></div>
+        <div class="cap" style="margin:12px 0 6px">Drawdown from the running peak</div><div class="cbox sm"><canvas id="cDD"></canvas></div></div>
+      <div class="chartcard"><h3>Monthly result</h3><div class="cap">Net R per month</div><div class="cbox"><canvas id="cMon"></canvas></div></div>
+      <div class="chartcard"><h3>Win rate by month</h3><div class="cap">Dashed line = ${pct(bePct())} break-even win rate</div><div class="cbox"><canvas id="cWR"></canvas></div></div>
+      <div class="chartcard"><h3>Outcomes by month</h3><div class="cap">Closed trades by result</div><div class="legend"><span><i style="background:var(--s1)"></i>TP</span><span><i style="background:var(--s2)"></i>SL</span><span><i style="background:var(--s3)"></i>Breakeven</span></div><div class="cbox" style="height:236px"><canvas id="cOut"></canvas></div></div>
+      <div class="chartcard"><h3>Net R by setup</h3><div class="cap">Which setups pay</div><div class="cbox"><canvas id="cSetup"></canvas></div></div>
+    </section>`;
+  renderCharts(ts);
+}
+const hexA = (hex, a) => { const h = hex.replace("#", ""); const n = parseInt(h.length === 3 ? h.split("").map(c => c + c).join("") : h, 16); return `rgba(${n >> 16 & 255},${n >> 8 & 255},${n & 255},${a})`; };
+const crosshair = { id: "crosshair", afterDraw(c) { const a = c.tooltip?._active; if (!a || !a.length) return;
+  const x = a[0].element.x, { top, bottom } = c.chartArea, ctx = c.ctx; ctx.save(); ctx.beginPath(); ctx.moveTo(x, top); ctx.lineTo(x, bottom); ctx.lineWidth = 1; ctx.strokeStyle = css("--border"); ctx.stroke(); ctx.restore(); } };
+function opts({ tooltip = {}, x = {}, y = {}, ...rest } = {}) {
+  const muted = css("--muted");
+  return { responsive: true, maintainAspectRatio: false, animation: reduceMotion ? false : { duration: 900, easing: "easeOutQuart" },
+    interaction: { mode: "index", intersect: false },
+    plugins: { legend: { display: false }, tooltip: Object.assign({ backgroundColor: css("--surface-solid"), titleColor: css("--ink"), bodyColor: css("--ink-2"), borderColor: css("--border"), borderWidth: 1, padding: 10, displayColors: false, titleFont: { weight: "600" } }, tooltip) },
+    scales: {
+      x: Object.assign({ grid: { display: false }, border: { color: css("--border") }, ticks: { color: muted, maxRotation: 0, autoSkipPadding: 12, font: { size: 11 } } }, x),
+      y: Object.assign({ grid: { color: css("--line") }, border: { display: false }, ticks: { color: muted, font: { size: 11 }, callback: v => v + "R" } }, y)
+    }, ...rest };
+}
+function renderCharts(ts) {
+  if (!window.Chart || !$("#cEq")) return;
+  Object.values(charts).forEach(c => c.destroy()); for (const k in charts) delete charts[k];
+  Chart.defaults.font.family = getComputedStyle(document.body).fontFamily;
+  const pos = css("--pos"), neg = css("--neg"), surf = css("--surface-solid"), muted = css("--muted"), s1 = css("--s1");
+  const c = ts.filter(t => t.closed);
+  // equity & drawdown
+  let eq = 0, peak = 0; const eqP = [0], ddP = [0], labels = ["Start"];
+  c.forEach(t => { eq += t.r; peak = Math.max(peak, eq); eqP.push(eq); ddP.push(eq - peak); labels.push(`Trade ${t.no} · ${ymd(t.date)}`); });
+  const xT = { color: muted, maxRotation: 0, font: { size: 11 }, maxTicksLimit: 8, callback: (v, i) => i === 0 ? "Start" : MONTHS[c[i - 1].date.getMonth()].slice(0, 3) + " " + String(c[i - 1].date.getFullYear()).slice(2) };
+  charts.eq = new Chart($("#cEq"), { type: "line", plugins: [crosshair],
+    data: { labels, datasets: [{ data: eqP, borderColor: s1, borderWidth: 2, pointRadius: 0, pointHoverRadius: 5, pointHoverBackgroundColor: s1, pointHoverBorderColor: surf, pointHoverBorderWidth: 2, tension: 0,
+      fill: { target: { value: 0 }, above: hexA(s1, .14), below: hexA(neg, .14) } }] },
+    options: opts({ x: { ticks: xT }, tooltip: { callbacks: { title: i => labels[i[0].dataIndex], label: i => { const k = i.dataIndex; if (!k) return "Start 0R"; const t = c[k - 1]; return [`Equity ${fmtR(eqP[k], true)}`, `${t.result} ${fmtR(t.r, true)} · ${t.market} ${t.direction} · ${t.setup}`]; } } } }) });
+  charts.dd = new Chart($("#cDD"), { type: "line", plugins: [crosshair],
+    data: { labels, datasets: [{ data: ddP, borderColor: neg, borderWidth: 1.5, pointRadius: 0, pointHoverRadius: 4, fill: { target: "origin", below: hexA(neg, .18) }, tension: 0 }] },
+    options: opts({ x: { display: false }, y: { max: 0 }, tooltip: { callbacks: { title: i => labels[i[0].dataIndex], label: i => `Drawdown ${fmtR(ddP[i.dataIndex])}` } } }) });
+  // months
+  const keys = [...new Set(c.map(t => t.date.getFullYear() * 12 + t.date.getMonth()))].sort((a, b) => a - b);
+  const mk = []; if (keys.length) for (let k = keys[0]; k <= keys[keys.length - 1]; k++) mk.push(k);
+  const mLab = mk.map(k => MONTHS[k % 12].slice(0, 3) + " " + String(Math.floor(k / 12)).slice(2));
+  const mS = mk.map(k => stats(c.filter(t => t.date.getFullYear() * 12 + t.date.getMonth() === k)));
+  charts.mon = new Chart($("#cMon"), { type: "bar",
+    data: { labels: mLab, datasets: [{ data: mS.map(m => m.net), backgroundColor: mS.map(m => m.net >= 0 ? pos : neg), borderRadius: 4, borderSkipped: "start", maxBarThickness: 44 }] },
+    options: opts({ tooltip: { callbacks: { label: i => { const m = mS[i.dataIndex]; return [`Net ${fmtR(m.net, true)}`, `${m.n} trades · win rate ${pct(m.winRate) || "—"}`]; } } } }) });
+  charts.wr = new Chart($("#cWR"), { type: "line", plugins: [crosshair],
+    data: { labels: mLab, datasets: [
+      { data: mS.map(m => m.winRate == null ? null : m.winRate * 100), borderColor: s1, borderWidth: 2, pointRadius: 4, pointBackgroundColor: s1, pointBorderColor: surf, pointBorderWidth: 2, spanGaps: true, tension: .2 },
+      { data: mk.map(() => bePct() * 100), borderColor: muted, borderWidth: 1, borderDash: [4, 4], pointRadius: 0, pointHoverRadius: 0 }] },
+    options: opts({ y: { min: 0, max: 100, ticks: { color: muted, font: { size: 11 }, stepSize: 25, callback: v => v + "%" } },
+      tooltip: { filter: i => i.datasetIndex === 0, callbacks: { label: i => { const m = mS[i.dataIndex]; return [`Win rate ${pct(m.winRate)}`, `${m.wins} TP · ${m.losses} SL · ${m.be} BE`]; } } } }) });
+  const OUT = [["TP", "--s1", "TP"], ["SL", "--s2", "SL"], ["BE", "--s3", "Breakeven"]];
+  charts.out = new Chart($("#cOut"), { type: "bar",
+    data: { labels: mLab, datasets: OUT.map(([r, col, name]) => ({ label: name, data: mS.map(m => r === "TP" ? m.wins : r === "SL" ? m.losses : m.be), backgroundColor: css(col), borderColor: surf, borderWidth: { top: 2, bottom: 0, left: 0, right: 0 }, maxBarThickness: 44 })) },
+    options: opts({ x: { stacked: true }, y: { stacked: true, ticks: { color: muted, font: { size: 11 }, precision: 0 } }, tooltip: { displayColors: true, usePointStyle: true, boxWidth: 8, boxHeight: 8 } }) });
+  const sk = groupKeys(c, "setup"); const sS = sk.map(k => stats(c.filter(t => t.setup === k)));
+  charts.setup = new Chart($("#cSetup"), { type: "bar",
+    data: { labels: sk, datasets: [{ data: sS.map(s => s.net), backgroundColor: sS.map(s => s.net >= 0 ? pos : neg), borderRadius: 4, borderSkipped: "start", maxBarThickness: 26 }] },
+    options: opts({ indexAxis: "y", interaction: { mode: "nearest", axis: "y", intersect: false },
+      x: { grid: { color: css("--line") }, border: { display: false }, ticks: { color: muted, font: { size: 11 }, callback: v => v + "R" } },
+      y: { grid: { display: false }, border: { color: css("--border") }, ticks: { color: muted, font: { size: 11 } } },
+      tooltip: { callbacks: { label: i => { const s = sS[i.dataIndex]; return [`Net ${fmtR(s.net, true)}`, `${s.n} trades · win rate ${pct(s.winRate)}`]; } } } }) });
+}
+
+/* ================= RISK VIEW ================= */
+function streakOdds(q, n, k) {          // P(at least one run of ≥k losses in n independent trades), loss prob q
+  let p = new Array(k).fill(0); p[0] = 1;
+  for (let i = 0; i < n; i++) {
+    const nx = new Array(k).fill(0), tot = p.reduce((a, b) => a + b, 0);
+    nx[0] = tot * (1 - q);
+    for (let j = 0; j < k - 1; j++) nx[j + 1] += p[j] * q;
+    p = nx;
+  }
+  return 1 - p.reduce((a, b) => a + b, 0);
+}
+function renderRiskView(ts) {
+  const R = state.risk, s = stats(ts);
+  const markets = [...new Set(Object.keys(CONFIG.contractSizes).concat(state.trades.map(t => t.market).filter(m => m !== "—")))].sort();
+  $("#view-risk").innerHTML = `
+    <div class="viewhead"><h2>Risk management</h2><p>Your settings are saved in this browser only.</p></div>
+    <section class="riskgrid">
+      <div class="panel"><div class="tbl"><div class="title"><h3>Account & risk per trade</h3></div></div><div class="body">
+        <div class="fields">
+          <div class="field"><label for="rBal">Account balance ($)</label><input id="rBal" type="number" min="0" step="100" value="${R.balance}"></div>
+          <div class="field"><label for="rPct">Risk per trade (%)</label><input id="rPct" type="number" min="0" step="0.1" value="${R.riskPct}"></div>
+        </div>
+        <div class="outs" id="acctOut"></div>
+      </div></div>
+      <div class="panel"><div class="tbl"><div class="title"><h3>Position size calculator</h3></div></div><div class="body">
+        <div class="fields">
+          <div class="field"><label for="psM">Market</label><select id="psM">${markets.map(m => `<option ${m === R.psMarket ? "selected" : ""}>${esc(m)}</option>`).join("")}</select></div>
+          <div class="field"><label for="psE">Entry price</label><input id="psE" type="number" step="any" value="${R.entry}" placeholder="e.g. 2715.40"></div>
+          <div class="field"><label for="psS">Stop loss price</label><input id="psS" type="number" step="any" value="${R.stop}" placeholder="e.g. 2710.40"></div>
+          <div class="field"><label for="psC">Contract size (units / lot)</label><input id="psC" type="number" step="any" value="${R.contract || CONFIG.contractSizes[R.psMarket] || ""}"></div>
+        </div>
+        <div class="outs" id="psOut"></div>
+        <p class="note">Assumes the price is quoted in USD. Contract sizes differ between brokers, so check yours (gold is usually 100 oz per lot).</p>
+      </div></div>
+      <div class="panel"><div class="tbl"><div class="title"><h3>Drawdown & streaks</h3>${scope()}</div></div><div class="body"><div class="outs" id="ddOut"></div></div></div>
+      <div class="panel"><div class="tbl"><div class="title"><h3>Daily rules</h3>${scope()}</div></div><div class="body">
+        <div class="fields">
+          <div class="field"><label for="rMax">Max trades per day</label><input id="rMax" type="number" min="1" step="1" value="${R.maxTrades}"></div>
+          <div class="field"><label for="rDL">Daily loss limit (R)</label><input id="rDL" type="number" min="0.5" step="0.5" value="${R.dailyLoss}"></div>
+        </div>
+        <div id="rulesOut"></div>
+      </div></div>
+      <div class="panel" style="grid-column:1/-1"><div class="tbl"><div class="title"><h3>Losing-streak odds over your next 100 trades</h3>${scope()}</div></div>
+        <div class="scroll" id="oddsOut"></div>
+        <div class="body" style="padding-top:12px"><p class="note" id="oddsNote"></p></div></div>
+    </section>`;
+  const recalc = () => {
+    const r = state.risk; r.balance = +$("#rBal").value || 0; r.riskPct = +$("#rPct").value || 0; r.psMarket = $("#psM").value;
+    r.entry = $("#psE").value; r.stop = $("#psS").value; r.contract = $("#psC").value; r.maxTrades = +$("#rMax").value || 1; r.dailyLoss = +$("#rDL").value || 0;
+    store("tj-risk", r); riskOutputs(ts, s);
+  };
+  ["#rBal", "#rPct", "#psE", "#psS", "#psC", "#rMax", "#rDL"].forEach(id => $(id).addEventListener("input", recalc));
+  $("#psM").addEventListener("change", () => { $("#psC").value = CONFIG.contractSizes[$("#psM").value] ?? ""; recalc(); });
+  riskOutputs(ts, s);
+}
+function riskOutputs(ts, s) {
+  const r = state.risk, riskUsd = r.balance * r.riskPct / 100;
+  const out = (k, v, cls = "", hl = false) => `<div class="out ${hl ? "hl" : ""}"><span>${k}</span><b class="${cls}">${v}</b></div>`;
+  $("#acctOut").innerHTML = out("Risk per trade", money(riskUsd), "", true) + out("Net result", money(s.net * riskUsd), rCls(s.net))
+    + out("Max drawdown", money(-s.maxDD * riskUsd), s.maxDD ? "neg" : "") + out("Max DD % of balance", r.balance ? pct(s.maxDD * riskUsd / r.balance) : "—", s.maxDD ? "neg" : "")
+    + out("One TP pays", money(CONFIG.rValues.TP * riskUsd), "pos") + out("Expectancy / trade", s.exp == null ? "—" : money(s.exp * riskUsd), s.exp == null ? "" : rCls(s.exp));
+  // position size
+  const e = parseFloat(r.entry), st = parseFloat(r.stop), cs = parseFloat(r.contract);
+  if (isFinite(e) && isFinite(st) && e !== st && cs > 0 && riskUsd > 0) {
+    const dist = Math.abs(e - st), lots = riskUsd / (dist * cs), buy = e > st, tp = buy ? e + dist * CONFIG.rValues.TP : e - dist * CONFIG.rValues.TP;
+    const dp = Math.max((String(r.entry).split(".")[1] || "").length, (String(r.stop).split(".")[1] || "").length, 2);
+    $("#psOut").innerHTML = out("Lot size", lots >= 0.01 ? (Math.floor(lots * 100) / 100).toFixed(2) : lots.toFixed(4), "", true) + out("Direction", buy ? "BUY" : "SELL")
+      + out("Stop distance", dist.toFixed(dp)) + out(`Take profit (1:${CONFIG.rValues.TP})`, tp.toFixed(dp), "pos") + out("Amount at risk", money(riskUsd), "neg");
+  } else $("#psOut").innerHTML = `<p class="note">Enter an entry and stop loss price to get the lot size for ${money(riskUsd)} risk.</p>`;
+  // drawdown & streaks
+  $("#ddOut").innerHTML = out("Current drawdown", fmtR(-s.curDD), s.curDD ? "neg" : "zero", true) + out("Max drawdown", fmtR(-s.maxDD), s.maxDD ? "neg" : "zero")
+    + out("Current run", s.curL ? `${s.curL} loss${s.curL > 1 ? "es" : ""}` : s.curW ? `${s.curW} win${s.curW > 1 ? "s" : ""}` : "—", s.curL ? "neg" : s.curW ? "pos" : "")
+    + out("Longest losing run", `${s.maxL}`, s.maxL ? "neg" : "") + out("Recovery needed", s.curDD ? `${Math.ceil(s.curDD / CONFIG.rValues.TP)} TP` : "At peak", s.curDD ? "" : "pos")
+    + out("Current DD in $", money(-s.curDD * riskUsd), s.curDD ? "neg" : "");
+  // daily rules
+  const days = new Map(); ts.forEach(t => { const k = ymd(t.date); const d = days.get(k) || { n: 0, r: 0 }; d.n++; d.r += t.closed ? t.r : 0; days.set(k, d); });
+  const bad = [...days.entries()].map(([k, d]) => ({ k, ...d, over: d.n > r.maxTrades, loss: r.dailyLoss > 0 && d.r <= -r.dailyLoss })).filter(d => d.over || d.loss).sort((a, b) => a.k < b.k ? 1 : -1);
+  const okShare = days.size ? (days.size - bad.length) / days.size : 1;
+  $("#rulesOut").innerHTML = `<div class="outs">${out("Days traded", days.size)}${out("Days within rules", pct(okShare), okShare >= .9 ? "pos" : okShare >= .7 ? "" : "neg", true)}${out("Rule breaks", bad.length, bad.length ? "neg" : "pos")}</div>`
+    + (bad.length ? `<div class="scroll" style="margin-top:12px;border:1px solid var(--line);border-radius:10px;max-height:240px;overflow:auto"><table><thead><tr><th>Date</th><th>Trades</th><th class="m">Net R</th><th>Broke</th></tr></thead><tbody>${bad.map(d => `<tr><td>${d.k}</td><td>${d.n}</td><td class="m r ${rCls(d.r)}">${fmtR(d.r)}</td><td>${[d.over ? "Too many trades" : "", d.loss ? "Loss limit" : ""].filter(Boolean).join(" · ")}</td></tr>`).join("")}</tbody></table></div>`
+      : `<p class="note" style="margin-top:12px">No day broke these rules.</p>`);
+  // streak odds
+  const dec = s.wins + s.losses, q = dec ? s.losses / dec : null;
+  if (q == null || dec < 5) { $("#oddsOut").innerHTML = `<p class="note" style="padding:16px">Log at least 5 TP/SL trades to estimate streak odds.</p>`; $("#oddsNote").textContent = ""; return; }
+  const ks = [3, 5, 8, 10, 12, 15, 20], rp = r.riskPct / 100;
+  let expMax = 0; for (let k = 1; k <= 100; k++) { const p = streakOdds(q, 100, k); expMax += p; if (p < 1e-6) break; }
+  $("#oddsOut").innerHTML = `<table><thead><tr><th>Losses in a row</th><th class="m">Chance in next 100 trades</th><th class="l" style="width:34%"></th><th class="m">Account drawdown at ${r.riskPct}% risk</th></tr></thead><tbody>${ks.map(k => {
+    const p = streakOdds(q, 100, k), dd = 1 - Math.pow(1 - rp, k);
+    const col = p >= .5 ? "var(--neg)" : p >= .15 ? "var(--s2)" : "var(--pos)";
+    return `<tr><td>${k}</td><td class="m r">${(p * 100).toFixed(p < .01 ? 2 : 1)}%</td><td class="l"><div class="bar"><i style="width:0;background:${col}" data-w="${(p * 100).toFixed(1)}%"></i></div></td><td class="m r neg">${rp ? "−" + (dd * 100).toFixed(1) + "%" : "—"}</td></tr>`; }).join("")}</tbody></table>`;
+  requestAnimationFrame(() => requestAnimationFrame(() => document.querySelectorAll("#oddsOut .bar i").forEach(i => i.style.width = i.dataset.w)));
+  $("#oddsNote").textContent = `Based on your loss rate of ${pct(q)} (${s.losses} SL out of ${dec} TP/SL trades), treating trades as independent. Expected longest losing run in 100 trades: about ${expMax.toFixed(1)}. Drawdown assumes you risk ${r.riskPct}% of the current balance on every trade.`;
+}
+
+/* ---------- start ---------- */
+state.view = VIEWS.includes(location.hash.slice(1)) ? location.hash.slice(1) : "cards";
+document.querySelectorAll("[data-view]").forEach(a => a.dataset.view === state.view ? a.setAttribute("aria-current", "page") : a.removeAttribute("aria-current"));
 loadRemote();
 </script>
 </body>
