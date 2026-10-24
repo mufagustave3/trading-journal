@@ -79,6 +79,49 @@ h1{font-size:20px;font-weight:600;margin:0;letter-spacing:-.01em}
 @media (max-width:1020px){.tabs{display:none}}
 @media (max-width:520px){.tools .lbl{display:none}}
 
+.titlerow{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.online{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:3px 10px 3px 8px;border-radius:999px;background:rgba(74,222,128,.14);color:#d4f7e0;border:1px solid rgba(74,222,128,.35);white-space:nowrap}
+.online[hidden]{display:none}
+.online i{width:7px;height:7px;border-radius:50%;background:#4ade80;animation:ping 2.4s infinite}
+.lockbtn{display:flex;gap:10px;align-items:center;font:inherit;font-weight:500;color:var(--ink);background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;cursor:pointer;margin-top:auto}
+.lockbtn[hidden]{display:none}
+.lockbtn:hover{background:var(--hover)}
+
+/* ---------- access gate ---------- */
+body.gated{overflow:hidden}
+body.gated .sea{display:none}
+.gate{position:fixed;inset:0;z-index:100;background:#04060c;overflow:hidden;color:#f2f4f8;font-family:var(--sans);transition:opacity .6s ease}
+.gate.out{opacity:0;pointer-events:none}
+.gate-scene{position:absolute;inset:-12px;width:calc(100% + 24px);height:calc(100% + 24px)}
+.gate-fx{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.gate-flash{position:absolute;inset:0;pointer-events:none;opacity:0}
+.gate-flash.on{animation:gflash .7s ease-out}
+@keyframes gflash{0%{opacity:1}100%{opacity:0}}
+.gate-red{position:absolute;inset:0;background:radial-gradient(circle at 50% 40%,#7a0a10,#1a0205);opacity:0;pointer-events:none}
+.gate-card{position:absolute;left:50%;bottom:max(6vh,calc(18px + env(safe-area-inset-bottom,0px)));transform:translateX(-50%);width:min(420px,calc(100% - 32px));
+  background:rgba(6,10,18,.72);backdrop-filter:blur(14px) saturate(1.2);-webkit-backdrop-filter:blur(14px) saturate(1.2);border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:20px 20px 16px;box-shadow:0 20px 60px rgba(0,0,0,.55);display:grid;gap:10px}
+.gate-card.bad{animation:gshake .45s cubic-bezier(.36,.07,.19,.97)}
+.gate-card.ok{border-color:rgba(74,222,128,.6)}
+@keyframes gshake{10%,90%{transform:translateX(calc(-50% - 2px))}20%,80%{transform:translateX(calc(-50% + 4px))}30%,50%,70%{transform:translateX(calc(-50% - 9px))}40%,60%{transform:translateX(calc(-50% + 9px))}}
+.gate-brand{display:flex;align-items:center;gap:8px;font-size:11.5px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:#ff8a8a}
+.gate-dot{width:8px;height:8px;border-radius:50%;background:#e11d2a;box-shadow:0 0 12px #e11d2a}
+.gate-card h2{margin:0;font-size:22px;font-weight:600;letter-spacing:-.01em}
+.gate-sub{margin:-4px 0 4px;color:#a9b3c4;font-size:13px}
+.gate-row{display:flex;gap:8px;min-width:0}
+.gate-card > *{min-width:0}
+.gate-row input{flex:1;min-width:0;width:100%;font:inherit;font-family:var(--mono);font-size:20px;letter-spacing:.25em;color:#fff;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.18);border-radius:11px;padding:10px 14px}
+.gate-row input::placeholder{color:rgba(255,255,255,.35)}
+.gate-row input:focus{outline:2px solid #e11d2a;outline-offset:1px}
+.gate-row button{font:inherit;font-weight:600;font-size:15px;color:#fff;background:linear-gradient(180deg,#d8202c,#9b0f18);border:1px solid #ff4b55;border-radius:11px;padding:0 18px;cursor:pointer;box-shadow:0 6px 18px rgba(200,20,30,.35)}
+.gate-row button:hover{filter:brightness(1.1)}
+.gate-check{display:flex;gap:8px;align-items:center;font-size:13px;color:#c7cfdb;cursor:pointer}
+.gate-err{margin:0;min-height:18px;color:#ff7b7b;font-size:13px;font-weight:600}
+.gate-out{display:grid;gap:8px;font-size:13px;color:#c7cfdb}
+.gate-out pre{margin:0;padding:10px;border-radius:9px;background:rgba(255,255,255,.07);color:#fff;font:12px var(--mono);white-space:pre-wrap;word-break:break-all}
+.gate-out button{justify-self:start;font:inherit;font-size:13px;font-weight:600;color:#fff;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);border-radius:8px;padding:6px 12px;cursor:pointer}
+.gate-out code{font-family:var(--mono)}
+.gate-sound{position:absolute;top:calc(14px + env(safe-area-inset-top,0px));right:max(14px,env(safe-area-inset-right,0px));font:inherit;font-size:13px;font-weight:600;color:#fff;background:rgba(6,10,18,.55);border:1px solid rgba(255,255,255,.2);border-radius:999px;padding:7px 14px;cursor:pointer;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+
 /* ---------- drawer ---------- */
 .scrim{position:fixed;inset:0;background:rgba(5,9,16,.45);opacity:0;pointer-events:none;transition:opacity .25s;z-index:30}
 .drawer{position:fixed;top:0;bottom:0;left:0;width:min(320px,86vw);background:var(--surface-solid);border-right:1px solid var(--border);z-index:31;transform:translateX(-102%);transition:transform .32s var(--ease);
@@ -350,6 +393,7 @@ body.no-shark footer{padding-bottom:36px}
     <label class="switch" for="darkSw"><span>Dark mode</span><input type="checkbox" id="darkSw"></label>
     <label class="switch" for="sharkSw"><span>Shark background</span><input type="checkbox" id="sharkSw" checked></label>
   </div>
+  <button type="button" class="lockbtn" id="lockBtn" hidden><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="4" y="9" width="12" height="8.5" rx="2"/><path d="M7 9V6.5a3 3 0 0 1 6 0V9"/></svg>Lock the site</button>
 </aside>
 
 <!-- ================= header ================= -->
@@ -357,7 +401,7 @@ body.no-shark footer{padding-bottom:36px}
   <div class="wrap">
     <button class="burger" id="openMenu" type="button" aria-label="Open menu" aria-controls="drawer" aria-expanded="false"><span></span></button>
     <div class="brand">
-      <h1><a href="#cards" class="home" id="homeLink" title="Go to home page">Trading Journal</a></h1>
+      <div class="titlerow"><h1><a href="#cards" class="home" id="homeLink" title="Go to home page">Trading Journal</a></h1><span class="online" id="online" hidden><i></i><b id="onlineN">1</b>&nbsp;online</span></div>
       <div class="sub" id="status"><span class="dot"></span>Loading trades…</div>
     </div>
     <nav class="tabs" aria-label="Pages">
@@ -405,7 +449,11 @@ const CONFIG = {
   screenshotFolder: "screenshots",    // image files named in the Screenshot column live here
   cumulativeYears: 10,                 // how many years the Cumulative R table shows
   contractSizes: { XAUUSD: 100, GBPUSD: 100000, EURUSD: 100000, ETHUSD: 1, BTCUSD: 1 }, // units per 1 lot (check your broker)
-  refreshMinutes: 5
+  refreshMinutes: 5,
+  // Access code: visit your site with ?makecode at the end of the address to create the line below. null = no code.
+  accessCodeHash: "6eaf74d15e32ecf454019e8397421b55ad4ea977e7af9af5c1e801bda1a38442",   // temporary code: 1234
+  // "People online" counter: paste your Firebase web-app config here (see README). null = hidden.
+  firebase: null
 };
 /* ==================================================================== */
 
@@ -425,6 +473,7 @@ const VIEWS = ["cards", "log", "charts", "risk"];
 const isDark = () => (document.documentElement.getAttribute("data-theme") || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")) === "dark";
 try { const t = localStorage.getItem("tj-theme"); if (t) document.documentElement.setAttribute("data-theme", t); } catch (e) {}
 try { if (localStorage.getItem("tj-shark") === "off") document.body.classList.add("no-shark"); } catch (e) {}
+if (CONFIG.accessCodeHash) { $("#lockBtn").hidden = false; $("#lockBtn").onclick = lockSite; }
 $("#darkSw").checked = isDark(); $("#sharkSw").checked = !document.body.classList.contains("no-shark");
 $("#darkSw").onchange = e => { const t = e.target.checked ? "dark" : "light"; document.documentElement.setAttribute("data-theme", t); try { localStorage.setItem("tj-theme", t); } catch (er) {} if (state.view === "charts") renderCharts(filtered()); };
 $("#sharkSw").onchange = e => { document.body.classList.toggle("no-shark", !e.target.checked); try { localStorage.setItem("tj-shark", e.target.checked ? "on" : "off"); } catch (er) {} };
@@ -964,10 +1013,309 @@ function riskOutputs(ts, s) {
   $("#oddsNote").textContent = `Based on your loss rate of ${pct(q)} (${s.losses} SL out of ${dec} TP/SL trades), treating trades as independent. Expected longest losing run in 100 trades: about ${expMax.toFixed(1)}. Drawdown assumes you risk ${r.riskPct}% of the current balance on every trade.`;
 }
 
+/* ================= ACCESS GATE (shark scene + sound) ================= */
+async function sha256(text) {
+  const b = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
+  return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, "0")).join("");
+}
+const codeHash = c => sha256("tj-journal:" + String(c).trim());
+
+/* ---- sound: everything is synthesised with Web Audio, no files needed ---- */
+const Snd = {
+  ctx: null, master: null, ambGain: null, on: true,
+  init() {
+    if (this.ctx) { if (this.ctx.state === "suspended") this.ctx.resume(); return; }
+    const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
+    const ctx = this.ctx = new AC();
+    this.master = ctx.createGain(); this.master.gain.value = this.on ? 0.9 : 0; this.master.connect(ctx.destination);
+    const len = ctx.sampleRate * 2, buf = ctx.createBuffer(1, len, ctx.sampleRate), d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+    this.noise = buf;
+    // ocean swell
+    const n = this.src(), lp = ctx.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 380;
+    const g = this.ambGain = ctx.createGain(); g.gain.value = 0.16;
+    const lfo = ctx.createOscillator(), lg = ctx.createGain(); lfo.frequency.value = 0.11; lg.gain.value = 0.1;
+    lfo.connect(lg); lg.connect(g.gain); n.connect(lp); lp.connect(g); g.connect(this.master); n.start(); lfo.start();
+    // wind
+    const w = this.src(), bp = ctx.createBiquadFilter(); bp.type = "bandpass"; bp.frequency.value = 1100; bp.Q.value = 0.6;
+    const wg = ctx.createGain(); wg.gain.value = 0.02; w.connect(bp); bp.connect(wg); wg.connect(this.master); w.start();
+  },
+  src() { const s = this.ctx.createBufferSource(); s.buffer = this.noise; s.loop = true; return s; },
+  env(g, t, peak, a, d) { g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(peak, t + a); g.gain.exponentialRampToValueAtTime(0.0001, t + a + d); },
+  splash(big = 1) {
+    if (!this.ctx) return; const c = this.ctx, t = c.currentTime;
+    const n = this.src(), lp = c.createBiquadFilter(), g = c.createGain();
+    lp.type = "lowpass"; lp.frequency.setValueAtTime(5000, t); lp.frequency.exponentialRampToValueAtTime(300, t + 1.2);
+    this.env(g, t, 0.9 * big, 0.02, 1.2); n.connect(lp); lp.connect(g); g.connect(this.master); n.start(t); n.stop(t + 1.4);
+    const o = c.createOscillator(), og = c.createGain(); o.type = "sine"; o.frequency.setValueAtTime(120, t); o.frequency.exponentialRampToValueAtTime(35, t + 0.5);
+    this.env(og, t, 0.7 * big, 0.01, 0.55); o.connect(og); og.connect(this.master); o.start(t); o.stop(t + 0.7);
+  },
+  roar() {
+    if (!this.ctx) return; const c = this.ctx, t = c.currentTime;
+    const ws = c.createWaveShaper(), k = 30, curve = new Float32Array(1024);
+    for (let i = 0; i < 1024; i++) { const x = i / 512 - 1; curve[i] = (1 + k) * x / (1 + k * Math.abs(x)); }
+    ws.curve = curve;
+    const lp = c.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.setValueAtTime(900, t); lp.frequency.linearRampToValueAtTime(380, t + 1.6);
+    const g = c.createGain(); this.env(g, t, 0.5, 0.08, 1.6);
+    const trem = c.createOscillator(), tg = c.createGain(), amp = c.createGain(); trem.frequency.value = 23; tg.gain.value = 0.45; amp.gain.value = 0.6;
+    trem.connect(tg); tg.connect(amp.gain);
+    [[68, "sawtooth"], [71.5, "sawtooth"], [34, "square"]].forEach(([f, type]) => {
+      const o = c.createOscillator(); o.type = type; o.frequency.setValueAtTime(f, t); o.frequency.exponentialRampToValueAtTime(f * 0.62, t + 1.6);
+      o.connect(ws); o.start(t); o.stop(t + 1.8);
+    });
+    const br = this.src(), bp = c.createBiquadFilter(), bg = c.createGain(); bp.type = "bandpass"; bp.frequency.value = 350; bp.Q.value = 0.8; bg.gain.value = 0.5;
+    br.connect(bp); bp.connect(bg); bg.connect(ws); br.start(t); br.stop(t + 1.8);
+    ws.connect(lp); lp.connect(amp); amp.connect(g); g.connect(this.master); trem.start(t); trem.stop(t + 1.8);
+  },
+  chomp() {
+    if (!this.ctx) return; const c = this.ctx, t = c.currentTime;
+    const n = this.src(), bp = c.createBiquadFilter(), g = c.createGain(); bp.type = "bandpass"; bp.frequency.value = 2400; bp.Q.value = 1.2;
+    this.env(g, t, 0.9, 0.003, 0.06); n.connect(bp); bp.connect(g); g.connect(this.master); n.start(t); n.stop(t + 0.1);
+    const o = c.createOscillator(), og = c.createGain(); o.type = "triangle"; o.frequency.setValueAtTime(140, t); o.frequency.exponentialRampToValueAtTime(45, t + 0.14);
+    this.env(og, t, 0.8, 0.004, 0.16); o.connect(og); og.connect(this.master); o.start(t); o.stop(t + 0.2);
+  },
+  set(on) { this.on = on; if (this.ctx) this.master.gain.setTargetAtTime(on ? 0.9 : 0, this.ctx.currentTime, 0.05); },
+  fadeOut() { if (this.ctx) this.master.gain.setTargetAtTime(0, this.ctx.currentTime, 0.35); setTimeout(() => { try { this.ctx && this.ctx.close(); } catch (e) {} this.ctx = null; }, 2000); }
+};
+
+function sharkMarkup() {
+  return `
+  <path d="M182 128 Q150 98 118 82 Q140 124 160 168 Z" fill="url(#gSkin)"/>
+  <path d="M238 176 Q280 198 304 230 Q264 220 230 200 Z" fill="url(#gSkin)"/>
+  <path d="M150 400 C140 230 150 160 190 112 C218 80 250 60 285 56 C305 54 322 60 338 70 C330 78 314 84 298 88 L262 100 L250 150 C232 180 225 240 228 400 Z" fill="url(#gSkin)"/>
+  <path d="M250 150 C232 180 225 240 228 400 L204 400 C204 240 216 186 250 150 Z" fill="#b9c3cf" opacity=".75"/>
+  <path d="M168 150 l14 -10 M176 168 l16 -8 M200 96 l10 6" stroke="#202833" stroke-width="2" stroke-linecap="round" opacity=".55"/>
+  <path d="M262 100 L298 88 L306 116 Z" fill="#2a0306"/>
+  <g fill="#f6f2e8">
+    <path d="M268 98.5 L272 97.2 L271 105 Z"/><path d="M274 96.7 L279 95 L277.5 104 Z"/><path d="M281 94.5 L286 92.8 L284.5 102 Z"/><path d="M288 92.3 L293 90.6 L291.5 100 Z"/><path d="M294.5 90.4 L298 89.3 L297 96 Z"/>
+  </g>
+  <g id="gJaw">
+    <path d="M262 100 L304 112 C316 116 322 124 317 133 C300 141 272 143 250 150 Z" fill="url(#gSkin)"/>
+    <path d="M262 100 L304 112 C316 116 322 124 317 133 C300 141 272 143 250 150 Z" fill="#b9c3cf" opacity=".3"/>
+    <g fill="#f6f2e8"><path d="M268 103 L272.5 104.3 L270.5 96 Z"/><path d="M275 105 L280 106.5 L277.5 97.5 Z"/><path d="M282.5 107.2 L287.5 108.6 L285 99.5 Z"/><path d="M290 109.3 L295 110.7 L292.5 101.5 Z"/><path d="M297 111.3 L301 112.3 L299.5 105 Z"/></g>
+    <path d="M272 105 Q284 113 302 114 Q310 121 301 132 Q290 123 280 121 Q272 115 272 105 Z" fill="#b3121b" opacity=".9"/>
+    <path d="M300 132 q2.5 8 0 13 q-4 2.5 -5 -2 q0 -5 5 -11 Z M288 136 q2.5 8 0 13 q-4 2.5 -5 -2 q0 -5 5 -11 Z" fill="#9e0d16"/>
+  </g>
+  <path d="M296 90 Q304 98 302 108" stroke="#b3121b" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+  <g stroke="#1b232d" stroke-width="2.2" fill="none" stroke-linecap="round" opacity=".85"><path d="M236 112 q-7 14 -5 30"/><path d="M226 118 q-7 14 -5 30"/><path d="M216 124 q-7 14 -5 30"/></g>
+  <circle cx="287" cy="72" r="9" fill="#ff2a2a" opacity=".35" filter="url(#gGlow)"/>
+  <circle cx="287" cy="72" r="5.2" fill="#090909"/>
+  <circle cx="288.6" cy="70.6" r="1.8" fill="#ff3434"/>
+  <path d="M273 60 L300 70.5" stroke="#090909" stroke-width="4.5" stroke-linecap="round"/>`;
+}
+
+function startGate(onOpen) {
+  const params = new URLSearchParams(location.search), make = params.has("makecode");
+  const get = (st, k) => { try { return st.getItem(k); } catch (e) { return null; } };
+  if (!make && (!CONFIG.accessCodeHash || get(localStorage, "tj-unlocked") === CONFIG.accessCodeHash || get(sessionStorage, "tj-unlocked") === CONFIG.accessCodeHash)) { onOpen(); return; }
+  document.body.classList.add("gated");
+  try { Snd.on = localStorage.getItem("tj-sound") !== "off"; } catch (e) {}
+  const gate = document.createElement("div"); gate.className = "gate"; gate.id = "gate";
+  let stars = ""; for (let i = 0; i < 90; i++) stars += `<circle cx="${(Math.random() * 1600).toFixed(0)}" cy="${(Math.random() * 480).toFixed(0)}" r="${(Math.random() * 1.3 + .3).toFixed(1)}" fill="#fff" opacity="${(Math.random() * .6 + .2).toFixed(2)}"/>`;
+  gate.innerHTML = `
+    <svg class="gate-scene" id="gScene" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <defs>
+        <linearGradient id="gSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#04060c"/><stop offset=".55" stop-color="#0b1020"/><stop offset="1" stop-color="#2a0c12"/></linearGradient>
+        <radialGradient id="gMoon"><stop offset="0" stop-color="#ffe9e2"/><stop offset=".6" stop-color="#f3b9a8"/><stop offset="1" stop-color="#b8432f"/></radialGradient>
+        <radialGradient id="gMoonGlow"><stop offset="0" stop-color="#ff6a50" stop-opacity=".35"/><stop offset="1" stop-color="#ff6a50" stop-opacity="0"/></radialGradient>
+        <linearGradient id="gWater" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0d1a2c"/><stop offset="1" stop-color="#03060b"/></linearGradient>
+        <linearGradient id="gWaterBack" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#16263d"/><stop offset="1" stop-color="#0a1322"/></linearGradient>
+        <radialGradient id="gBlood"><stop offset="0" stop-color="#c0141e" stop-opacity=".95"/><stop offset=".55" stop-color="#8e0c14" stop-opacity=".6"/><stop offset="1" stop-color="#5a060c" stop-opacity="0"/></radialGradient>
+        <linearGradient id="gSkin" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6d7b8c"/><stop offset=".6" stop-color="#4a5666"/><stop offset="1" stop-color="#2c3540"/></linearGradient>
+        <filter id="gGlow" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="4"/></filter>
+        <filter id="gMist"><feGaussianBlur stdDeviation="18"/></filter>
+      </defs>
+      <rect width="1600" height="900" fill="url(#gSky)"/>
+      <g>${stars}</g>
+      <circle cx="1260" cy="190" r="190" fill="url(#gMoonGlow)"/>
+      <circle cx="1260" cy="190" r="66" fill="url(#gMoon)"/>
+      <ellipse cx="800" cy="545" rx="900" ry="40" fill="#3a1016" opacity=".45" filter="url(#gMist)"/>
+      <path id="gBack" fill="url(#gWaterBack)"/>
+      <g id="gShark">${sharkMarkup()}</g>
+      <g id="gFin"><path d="M0 0 Q-26 -62 -64 -96 Q-40 -38 -14 0 Z" fill="url(#gSkin)"/><path d="M8 2 q40 4 80 -2 M14 6 q50 6 110 0" stroke="#cfe0f5" stroke-width="2" fill="none" opacity=".35"/></g>
+      <path id="gFront" fill="url(#gWater)"/>
+      <ellipse cx="1260" cy="640" rx="16" ry="150" fill="#ffb4a2" opacity=".05" filter="url(#gMist)"/>
+      <ellipse id="gPool" cx="800" cy="582" rx="520" ry="46" fill="url(#gBlood)" opacity="0"/>
+      <path id="gFoam" fill="none" stroke="#d6e6fa" stroke-width="2" opacity=".18"/>
+    </svg>
+    <canvas class="gate-fx" id="gFx"></canvas>
+    <div class="gate-flash" id="gFlash"></div>
+    <div class="gate-red" id="gRed"></div>
+    <button type="button" class="gate-sound" id="gSound"></button>
+    <form class="gate-card" id="gForm" autocomplete="off">
+      <div class="gate-brand"><span class="gate-dot"></span>Trading Journal</div>
+      <h2>${make ? "Create an access code" : "Enter access code"}</h2>
+      <p class="gate-sub">${make ? "Type the code you want. You'll get a line to paste into index.html." : "This journal is private."}</p>
+      <div class="gate-row">
+        <input id="gCode" type="${make ? "text" : "password"}" autocomplete="${make ? "off" : "current-password"}" aria-label="Access code" placeholder="${make ? "New code" : "••••"}" required>
+        <button type="submit" id="gGo">${make ? "Generate" : "Unlock"}</button>
+      </div>
+      ${make ? `<div class="gate-out" id="gOut" hidden></div>` : `<label class="gate-check" for="gRemember"><input type="checkbox" id="gRemember" checked> Remember this device</label>`}
+      <p class="gate-err" id="gErr" role="alert"></p>
+    </form>`;
+  document.body.appendChild(gate);
+
+  const $g = s => gate.querySelector(s);
+  const svg = $g("#gScene"), shark = $g("#gShark"), jaw = $g("#gJaw"), fin = $g("#gFin"), pool = $g("#gPool");
+  const front = $g("#gFront"), back = $g("#gBack"), foam = $g("#gFoam"), cv = $g("#gFx"), ctx = cv.getContext("2d");
+  const flash = $g("#gFlash"), red = $g("#gRed"), card = $g("#gForm"), input = $g("#gCode"), err = $g("#gErr"), sbtn = $g("#gSound");
+  let audioReady = false;
+  const paintSound = () => { sbtn.innerHTML = !audioReady ? "🔊 Tap for sound" : Snd.on ? "🔊 Sound on" : "🔇 Sound off"; };
+  const wake = () => { if (!audioReady) { audioReady = true; Snd.init(); paintSound(); } };
+  gate.addEventListener("pointerdown", wake); gate.addEventListener("keydown", wake);
+  sbtn.onclick = e => { e.stopPropagation(); if (!audioReady) { wake(); if (!Snd.on) { Snd.set(true); } } else { Snd.set(!Snd.on); } try { localStorage.setItem("tj-sound", Snd.on ? "on" : "off"); } catch (er) {} paintSound(); };
+  paintSound();
+  setTimeout(() => input.focus({ preventScroll: true }), 400);
+
+  /* ---- particles ---- */
+  const parts = []; let dpr = 1;
+  const size = () => { dpr = Math.min(2, devicePixelRatio || 1); cv.width = innerWidth * dpr; cv.height = innerHeight * dpr; };
+  size(); addEventListener("resize", size);
+  const toScreen = (el, x, y) => { const m = el.getScreenCTM(); if (!m) return { x: 0, y: 0 }; const p = svg.createSVGPoint(); p.x = x; p.y = y; return p.matrixTransform(m); };
+  const k = () => Math.max(.6, innerHeight / 900);
+  function burst(x, y, n, power, bloodShare) {
+    for (let i = 0; i < n; i++) {
+      const a = -Math.PI / 2 + (Math.random() - .5) * 1.9, v = (power * (.35 + Math.random() * .75)) * k(), blood = Math.random() < bloodShare;
+      parts.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, r: (1.2 + Math.random() * 3.6) * k(), life: 70 + Math.random() * 50, age: 0,
+        c: blood ? (Math.random() < .5 ? "179,18,27" : "122,10,16") : (Math.random() < .5 ? "205,225,250" : "150,180,215") });
+    }
+  }
+  function drawParts() {
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, innerWidth, innerHeight);
+    for (let i = parts.length - 1; i >= 0; i--) {
+      const p = parts[i]; p.age++; p.vy += .32 * k(); p.vx *= .992; p.x += p.vx; p.y += p.vy;
+      const a = Math.max(0, 1 - p.age / p.life); if (a <= 0 || p.y > innerHeight + 20) { parts.splice(i, 1); continue; }
+      ctx.fillStyle = `rgba(${p.c},${(a * .9).toFixed(3)})`; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 6.283); ctx.fill();
+    }
+  }
+
+  /* ---- water ---- */
+  let bulge = 0, bulgeX = 800;
+  function wave(t, base, a1, a2, sp) {
+    let d = `M-60 900 L-60 ${base}`;
+    for (let x = -60; x <= 1660; x += 40) {
+      const b = bulge * 46 * Math.exp(-Math.pow((x - bulgeX) / 170, 2));
+      d += ` L${x} ${(base + a1 * Math.sin(x / 95 + t * sp) + a2 * Math.sin(x / 38 - t * sp * 1.6) - b).toFixed(1)}`;
+    }
+    return d + " L1660 900 Z";
+  }
+
+  /* ---- timeline ---- */
+  const P = 10, S = 2.15;
+  const easeOutBack = p => { const c1 = 1.5, c3 = c1 + 1; return 1 + c3 * Math.pow(p - 1, 3) + c1 * Math.pow(p - 1, 2); };
+  const easeIn = p => p * p * p;
+  let base = performance.now() - 1500, lastCycle = -1, fired = {}, shakeUntil = 0, lunge = 0, alive = true;
+  const fire = (key, fn) => { if (!fired[key]) { fired[key] = 1; fn(); } };
+  const doFlash = (c) => { flash.style.background = c; flash.classList.remove("on"); void flash.offsetWidth; flash.classList.add("on"); };
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  function place(t, now) {
+    // fin cruises in, then dives
+    let fx = 150 + Math.min(t, 3.2) / 3.2 * 650, fy = 574 + 3 * Math.sin(t * 3), fo = t < .4 ? t / .4 : 1;
+    if (t >= 3.2) { const p = Math.min(1, (t - 3.2) / .35); fy += p * 46; fo = 1 - p; }
+    fin.setAttribute("transform", `translate(${fx.toFixed(1)} ${fy.toFixed(1)})`); fin.setAttribute("opacity", fo.toFixed(2));
+    // shark breach
+    let ty = 1000, rot = 0, s = S, tx = 800 - 245 * S, jawA = 7;
+    if (t >= 3.5 && t < 4.5) { const p = (t - 3.5); ty = 900 + (-40 - 900) * easeOutBack(p); rot = -24 + 16 * p; }
+    else if (t >= 4.5 && t < 6.2) { ty = -40 + 12 * Math.sin((t - 4.5) * 3); rot = -8 + 2.5 * Math.sin((t - 4.5) * 2.2); }
+    else if (t >= 6.2 && t < 7.4) { const p = (t - 6.2) / 1.2; ty = -28 + (980 + 28) * easeIn(p); rot = -8 + 30 * p; }
+    [4.75, 5.25, 5.75].forEach(tc => { const d = Math.abs(t - tc); if (d < .14) jawA = 7 - 15 * (1 - d / .14); });
+    if (lunge) {
+      const p = Math.min(1, (now - lunge) / 900), e = p * p;
+      s = S + 6.5 * e; ty = (ty > 600 ? 300 : ty) * (1 - e) + (-1250 * e); tx = 800 - 245 * s + 120 * e; rot = rot * (1 - e) - 4 * e; jawA = 14;
+      red.style.opacity = (e * .9).toFixed(2);
+      if (p >= 1) finish();
+    }
+    shark.setAttribute("transform", `translate(${tx.toFixed(1)} ${ty.toFixed(1)}) scale(${s.toFixed(3)}) rotate(${rot.toFixed(2)} 240 300)`);
+    jaw.setAttribute("transform", `rotate(${jawA.toFixed(2)} 262 100)`);
+    // water bulge & blood pool
+    bulge = t >= 3.25 && t < 3.65 ? (t - 3.25) / .4 : t >= 3.65 && t < 4.6 ? 1 - (t - 3.65) / .95 : t >= 6.55 && t < 7.2 ? Math.sin((t - 6.55) / .65 * Math.PI) * .6 : 0;
+    const since = t >= 3.62 ? t - 3.62 : t + P - 3.62;
+    pool.setAttribute("opacity", (0.85 * Math.exp(-since / 3.4)).toFixed(3));
+    pool.setAttribute("rx", (300 + Math.min(since, 4) * 70).toFixed(0));
+    back.setAttribute("d", wave(t * 1.0 + 3, 548, 6, 3, 1.1));
+    front.setAttribute("d", wave(t, 566, 9, 5, 1.4));
+    foam.setAttribute("d", wave(t, 566, 9, 5, 1.4).replace(/^M-60 900 L/, "M").replace(/ L1660 900 Z$/, ""));
+  }
+
+  function events(t) {
+    fire("breach", () => {});
+    if (t >= 3.62) fire("splash", () => { Snd.splash(1); Snd.roar(); doFlash("rgba(255,60,60,.35)"); shakeUntil = performance.now() + 450;
+      const p = toScreen(svg, 800, 566); burst(p.x, p.y, 170, 15, .42); });
+    [4.75, 5.25, 5.75].forEach((tc, i) => { if (t >= tc) fire("c" + i, () => { Snd.chomp(); const m = toScreen(shark, 300, 128); burst(m.x, m.y, 14, 5, 1); }); });
+    if (t >= 4.5 && t < 6.3 && Math.random() < .25) { const m = toScreen(shark, 298, 140); burst(m.x, m.y, 1, 1.2, 1); }
+    if (t >= 6.75) fire("splash2", () => { Snd.splash(.55); const p = toScreen(svg, 830, 566); burst(p.x, p.y, 70, 9, .3); });
+  }
+
+  function frame(now) {
+    if (!alive) return;
+    const el = (now - base) / 1000, cyc = Math.floor(el / P), t = el - cyc * P;
+    if (cyc !== lastCycle) { lastCycle = cyc; fired = {}; }
+    place(t, now); if (!lunge) events(t); drawParts();
+    svg.style.transform = now < shakeUntil ? `translate(${((Math.random() - .5) * 14).toFixed(1)}px,${((Math.random() - .5) * 14).toFixed(1)}px)` : "";
+    requestAnimationFrame(frame);
+  }
+  if (reduce) place(5, performance.now()); else requestAnimationFrame(frame);
+
+  function attackNow() {   // wrong code: the shark comes up right away
+    const el = (performance.now() - base) / 1000, t = el % P;
+    if (t < 3.1 || t > 7.5) { base = performance.now() - 3.1 * 1000; lastCycle = -1; }
+  }
+  function finish() {
+    if (!alive) return; alive = false;
+    gate.classList.add("out"); Snd.fadeOut();
+    setTimeout(() => { gate.remove(); document.body.classList.remove("gated"); }, 650);
+    onOpen();
+  }
+
+  card.addEventListener("submit", async e => {
+    e.preventDefault(); wake();
+    const code = input.value; if (!code.trim()) return;
+    if (!window.crypto || !crypto.subtle) { err.textContent = "This browser can't check the code here. Open the site over https."; return; }
+    const h = await codeHash(code);
+    if (make) {
+      const out = $g("#gOut"); out.hidden = false;
+      out.innerHTML = `<div>Paste this into <b>index.html</b>, replacing the <code>accessCodeHash</code> line:</div><pre id="gLine">accessCodeHash: "${h}",</pre><button type="button" id="gCopy">Copy line</button>`;
+      $g("#gCopy").onclick = async () => { try { await navigator.clipboard.writeText(`accessCodeHash: "${h}",`); $g("#gCopy").textContent = "Copied"; } catch (er) { const r = document.createRange(); r.selectNodeContents($g("#gLine")); getSelection().removeAllRanges(); getSelection().addRange(r); $g("#gCopy").textContent = "Selected, press Ctrl+C"; } };
+      Snd.chomp(); return;
+    }
+    if (h === CONFIG.accessCodeHash) {
+      try { (($g("#gRemember") || {}).checked ? localStorage : sessionStorage).setItem("tj-unlocked", h); } catch (er) {}
+      err.textContent = ""; card.classList.add("ok"); Snd.roar(); Snd.splash(.8);
+      if (reduce) finish(); else { lunge = performance.now(); doFlash("rgba(255,40,40,.5)"); }
+    } else {
+      err.textContent = "Wrong code. The shark is hungry."; input.value = "";
+      card.classList.remove("bad"); void card.offsetWidth; card.classList.add("bad");
+      Snd.chomp(); setTimeout(() => Snd.chomp(), 160); if (!reduce) attackNow();
+    }
+  });
+}
+function lockSite() {
+  try { localStorage.removeItem("tj-unlocked"); sessionStorage.removeItem("tj-unlocked"); } catch (e) {}
+  location.reload();
+}
+
+/* ================= WHO'S ONLINE (Firebase presence) ================= */
+function startPresence() {
+  const cfg = CONFIG.firebase; if (!cfg || !cfg.databaseURL) return;
+  const load = src => new Promise((res, rej) => { const s = document.createElement("script"); s.src = src; s.onload = res; s.onerror = rej; document.head.appendChild(s); });
+  const V = "10.12.2", B = `https://www.gstatic.com/firebasejs/${V}/`;
+  load(B + "firebase-app-compat.js").then(() => load(B + "firebase-database-compat.js")).then(() => {
+    firebase.initializeApp(cfg);
+    const db = firebase.database(), me = db.ref("presence").push();
+    db.ref(".info/connected").on("value", snap => { if (snap.val() === true) { me.onDisconnect().remove(); me.set(firebase.database.ServerValue.TIMESTAMP); } });
+    db.ref("presence").on("value", snap => {
+      const n = Math.max(1, snap.numChildren()), el = $("#online");
+      $("#onlineN").textContent = n; el.hidden = false;
+      el.title = n === 1 ? "Only you are viewing right now" : `${n} people are viewing right now (including you)`;
+    });
+  }).catch(() => {});
+}
+
 /* ---------- start ---------- */
 state.view = VIEWS.includes(location.hash.slice(1)) ? location.hash.slice(1) : "cards";
 document.querySelectorAll("[data-view]").forEach(a => a.dataset.view === state.view ? a.setAttribute("aria-current", "page") : a.removeAttribute("aria-current"));
-loadRemote();
+startGate(() => { loadRemote(); startPresence(); });
 </script>
 </body>
 </html>
