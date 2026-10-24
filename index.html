@@ -186,6 +186,15 @@ main > *,.view > *{min-width:0}
 .card .k{font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
 .card .v{font-family:var(--mono);font-size:26px;font-weight:600;letter-spacing:-.02em;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .card .h{font-size:12.5px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card.wide{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:14px 28px;align-items:center}
+.goal-main{display:grid;gap:4px;min-width:0;flex:1 1 260px}
+.goal-h{white-space:normal!important}
+.goal-side{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;flex:2 1 420px;min-width:0}
+.goal-side > div{background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:9px 12px;display:grid;gap:1px;min-width:0}
+.goal-side span{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.goal-side b{font-family:var(--mono);font-size:17px;font-weight:600;white-space:nowrap}
+.goal-side small{font-size:11.5px;color:var(--ink-2)}
+@media (max-width:640px){.goal-side{grid-template-columns:minmax(0,1fr)}}
 .mklist{display:grid;gap:6px;margin:4px 0 2px}
 .mk{display:grid;grid-template-columns:62px minmax(0,1fr) auto;gap:8px;align-items:center;font-size:12.5px;font-weight:600;color:var(--ink-2)}
 .mk i{height:6px;border-radius:3px;background:var(--line);overflow:hidden}
@@ -447,11 +456,12 @@ const CONFIG = {
   sheet: null,                        // sheet name, or null = first sheet
   rValues: { TP: 6, SL: -1, BE: 0 },  // R earned per result (match your Dashboard)
   screenshotFolder: "screenshots",    // image files named in the Screenshot column live here
-  cumulativeYears: 10,                 // how many years the Cumulative R table shows
+  cumulativeYears: 10,
+  targetR: 30,                        // goal for the "Time to +30R" card                 // how many years the Cumulative R table shows
   contractSizes: { XAUUSD: 100, GBPUSD: 100000, EURUSD: 100000, ETHUSD: 1, BTCUSD: 1 }, // units per 1 lot (check your broker)
   refreshMinutes: 5,
   // Access code: visit your site with ?makecode at the end of the address to create the line below. null = no code.
-  accessCodeHash: "a9687c77c443b48a935ff0189b26b02ac16e8b8d2dc43af5310f3fd5e1756e8d",   // temporary code: 1234
+  accessCodeHash: "6eaf74d15e32ecf454019e8397421b55ad4ea977e7af9af5c1e801bda1a38442",   // temporary code: 1234
   // "People online" counter: paste your Firebase web-app config here (see README). null = hidden.
   firebase: null
 };
@@ -707,6 +717,38 @@ function renderCardsView(ts) {
   renderGroup(ts, "#tSession", "Performance by Session", "Session", "session", ["Asia", "London", "New York"]);
   renderGroup(ts, "#tSetup", "Performance by Setup", "Setup", "setup");
 }
+function mulberry32(a) { return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function projection(ts, target) {
+  const c = ts.filter(t => t.closed); if (!c.length) return null;
+  const key = d => d.getFullYear() * 12 + d.getMonth(), now = new Date();
+  const k0 = Math.min(...c.map(t => key(t.date))), k1 = Math.max(key(now), ...c.map(t => key(t.date)));
+  const series = []; for (let k = k0; k <= k1; k++) series.push(c.filter(t => key(t.date) === k).reduce((a, t) => a + t.r, 0));
+  const n = series.length, avg = series.reduce((a, b) => a + b, 0) / n;
+  if (avg <= 0) return { n, avg };
+  const rng = mulberry32(2026), res = [], CAP = 240;
+  for (let i = 0; i < 2000; i++) { let cum = 0, m = 0; while (cum < target && m < CAP) { cum += series[Math.floor(rng() * n)]; m++; } res.push(m); }
+  res.sort((a, b) => a - b);
+  const q = p => res[Math.min(res.length - 1, Math.floor(p * res.length))];
+  return { n, avg, months: Math.ceil(target / avg), p10: q(.1), p50: q(.5), p90: q(.9), capped: q(.9) >= CAP };
+}
+function goalCard(ts) {
+  const T = CONFIG.targetR, p = projection(ts, T);
+  const ml = n => n === 1 ? "1 month" : n + " months";
+  let v, h, side = "";
+  if (!p) { v = "—"; h = "log some closed trades first"; }
+  else if (p.months == null) { v = "Not at this pace"; h = `average is ${fmtR(p.avg, true)} per month over ${ml(p.n)}; the average has to be positive to reach +${T}R`; }
+  else {
+    const d = new Date(); d.setMonth(d.getMonth() + p.months);
+    v = "≈ " + ml(p.months);
+    h = `at your average of ${fmtR(p.avg, true)} per month, based on ${ml(p.n)} of data${p.n < 6 ? " (early estimate)" : ""}`;
+    side = `<div class="goal-side">
+      <div><span>Likely range</span><b>${p.p10}–${p.capped ? "240+" : p.p90} months</b><small>80% of 2,000 simulations</small></div>
+      <div><span>Typical case</span><b>${ml(p.p50)}</b><small>median simulation</small></div>
+      <div><span>Expected around</span><b>${MONTHS[d.getMonth()].slice(0, 3)} ${d.getFullYear()}</b><small>from today at the average pace</small></div>
+    </div>`;
+  }
+  return `<div class="card wide" style="--accent:var(--s1)"><div class="goal-main"><div class="k">Time to +${T}R</div><div class="v ${p && p.months ? "" : "neg"}">${v}</div><div class="h goal-h">${h}</div></div>${side}</div>`;
+}
 function marketCard(ts) {
   const closed = ts.filter(t => t.closed), mk = groupKeys(closed, "market");
   if (!mk.length) return `<div class="v">—</div><div class="h">no closed trades</div>`;
@@ -733,7 +775,7 @@ function renderCards(ts) {
     { k: "Best / worst month", t: best ? `${fmtR(best[1], true)} / ${fmtR(worst[1], true)}` : "—", h: best ? `${mName(best[0])} · ${mName(worst[0])}` : "", a: "var(--navy-2)" },
     { k: "Streaks", t: `${s.maxW}W / ${s.maxL}L`, h: s.curL ? `on a ${s.curL}-loss run now` : s.curW ? `on a ${s.curW}-win run now` : "longest TP / SL runs", a: "var(--navy-2)" }
   ];
-  $("#cards").innerHTML = C.map((c, i) => `<div class="card" style="--accent:${c.a}"><div class="k">${c.k}</div>${c.html ?? `<div class="v ${c.c || ""}" id="cv${i}">${c.t ?? c.f(c.n)}</div><div class="h">${c.h || "&nbsp;"}</div>`}${c.meter ? `<div class="meter" title="Tick marks the ${pct(be)} break-even win rate"><i id="wrMeter" style="background:${edge != null && edge >= 0 ? "var(--pos)" : "var(--neg)"}"></i><b style="left:calc(${be * 100}% - 1px)"></b></div>` : ""}</div>`).join("");
+  $("#cards").innerHTML = C.map((c, i) => `<div class="card" style="--accent:${c.a}"><div class="k">${c.k}</div>${c.html ?? `<div class="v ${c.c || ""}" id="cv${i}">${c.t ?? c.f(c.n)}</div><div class="h">${c.h || "&nbsp;"}</div>`}${c.meter ? `<div class="meter" title="Tick marks the ${pct(be)} break-even win rate"><i id="wrMeter" style="background:${edge != null && edge >= 0 ? "var(--pos)" : "var(--neg)"}"></i><b style="left:calc(${be * 100}% - 1px)"></b></div>` : ""}</div>`).join("") + goalCard(ts);
   C.forEach((c, i) => { if (c.t == null && c.n != null) countUp($("#cv" + i), c.n, c.f); });
   requestAnimationFrame(() => requestAnimationFrame(() => { const m = $("#wrMeter"); if (m) m.style.width = Math.min(100, (s.winRate || 0) * 100) + "%"; }));
 }
