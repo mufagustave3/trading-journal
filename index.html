@@ -143,6 +143,11 @@ main > *,.view > *{min-width:0}
 .card .k{font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
 .card .v{font-family:var(--mono);font-size:26px;font-weight:600;letter-spacing:-.02em;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .card .h{font-size:12.5px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mklist{display:grid;gap:6px;margin:4px 0 2px}
+.mk{display:grid;grid-template-columns:62px minmax(0,1fr) auto;gap:8px;align-items:center;font-size:12.5px;font-weight:600;color:var(--ink-2)}
+.mk i{height:6px;border-radius:3px;background:var(--line);overflow:hidden}
+.mk i b{display:block;height:100%;border-radius:3px}
+.mk em{font-style:normal;font-family:var(--mono);font-size:14px;font-weight:600;text-align:right}
 .meter{position:relative;height:6px;border-radius:3px;background:var(--line);margin-top:6px}
 .meter i{position:absolute;inset:0 auto 0 0;border-radius:3px;width:0;transition:width 1s var(--ease)}
 .meter b{position:absolute;top:-4px;width:2px;height:14px;background:var(--ink-2);border-radius:1px}
@@ -181,6 +186,7 @@ tr.sub td{font-size:13px;color:var(--ink-2)}
 tr.sub td:first-child{padding-left:30px;position:relative}
 tr.sub td:first-child::before{content:"";position:absolute;left:16px;top:50%;width:8px;height:1px;background:var(--muted)}
 .summary th{text-align:right}.summary th:first-child{text-align:left}
+.negnote{padding:10px 14px;font-size:12.5px;color:var(--ink-2);border-top:1px solid var(--line);background:var(--surface-2)}
 .none{color:var(--muted);text-align:center!important;padding:18px!important}
 
 /* trade log */
@@ -397,7 +403,7 @@ const CONFIG = {
   sheet: null,                        // sheet name, or null = first sheet
   rValues: { TP: 6, SL: -1, BE: 0 },  // R earned per result (match your Dashboard)
   screenshotFolder: "screenshots",    // image files named in the Screenshot column live here
-  cumulativeYears: 6,                 // how many years the Cumulative R table shows
+  cumulativeYears: 10,                 // how many years the Cumulative R table shows
   contractSizes: { XAUUSD: 100, GBPUSD: 100000, EURUSD: 100000, ETHUSD: 1, BTCUSD: 1 }, // units per 1 lot (check your broker)
   refreshMinutes: 5
 };
@@ -642,14 +648,23 @@ function renderCardsView(ts) {
   if (!years.includes(state.year)) state.year = years.length ? years[years.length - 1] : new Date().getFullYear();
   $("#view-cards").innerHTML = `
     <section class="cards" id="cards"></section>
-    <section class="grid row1"><div class="tbl" id="tMonthly"></div><div class="tbl" id="tCum"></div></section>
-    <section class="grid row2"><div class="tbl" id="tSummary"></div><div class="stack"><div class="tbl" id="tDir"></div><div class="tbl" id="tMarket"></div></div></section>
+    <section class="grid row1"><div class="tbl" id="tMonthly"></div><div class="tbl" id="tSummary"></div></section>
+    <section class="tbl" id="tCum"></section>
+    <section class="grid row2"><div class="stack"><div class="tbl" id="tDir"></div><div class="tbl" id="tMarket"></div></div><div class="tbl" id="tNeg"></div></section>
     <section class="grid row2"><div class="tbl" id="tSession"></div><div class="tbl" id="tSetup"></div></section>`;
-  renderCards(ts); renderMonthly(ts, years); renderCumulative(ts, years); renderSummary(ts);
+  renderCards(ts); renderMonthly(ts, years); renderCumulative(ts, years); renderSummary(ts); renderNegative(ts);
   renderGroup(ts, "#tDir", "Performance by Direction", "Direction", "direction", ["BUY", "SELL"]);
   renderGroup(ts, "#tMarket", "Performance by Market", "Market", "market");
   renderGroup(ts, "#tSession", "Performance by Session", "Session", "session", ["Asia", "London", "New York"]);
   renderGroup(ts, "#tSetup", "Performance by Setup", "Setup", "setup");
+}
+function marketCard(ts) {
+  const closed = ts.filter(t => t.closed), mk = groupKeys(closed, "market");
+  if (!mk.length) return `<div class="v">—</div><div class="h">no closed trades</div>`;
+  const rows = mk.map(m => ({ m, s: stats(closed.filter(t => t.market === m)) }));
+  const max = Math.max(1e-9, ...rows.map(r => Math.abs(r.s.net))), shown = rows.slice(0, 3);
+  return `<div class="mklist">${shown.map(r => `<div class="mk"><span>${esc(r.m)}</span><i><b style="width:${(Math.abs(r.s.net) / max * 100).toFixed(1)}%;background:var(${r.s.net >= 0 ? "--pos" : "--neg"})"></b></i><em class="${rCls(r.s.net)}">${fmtR(r.s.net, true)}</em></div>`).join("")}</div>
+    <div class="h">${rows.length > 3 ? `+${rows.length - 3} more market${rows.length - 3 > 1 ? "s" : ""}` : `${rows.map(r => r.s.n).join(" / ")} closed trades`}</div>`;
 }
 function renderCards(ts) {
   const s = stats(ts), be = bePct();
@@ -662,14 +677,14 @@ function renderCards(ts) {
   const C = [
     { k: "Net result", n: s.net, f: v => fmtR(v, true), c: rCls(s.net), a: accent(s.net), h: `${s.n} closed trade${s.n === 1 ? "" : "s"}${s.open ? ` · ${s.open} open` : ""}` },
     { k: "Win rate", n: s.winRate == null ? null : s.winRate * 100, f: v => v == null ? "—" : v.toFixed(1) + "%", c: edge == null ? "" : edge >= 0 ? "pos" : "neg", a: accent(edge), h: `${s.wins} TP · ${s.losses} SL · ${s.be} BE`, meter: true },
-    { k: "Edge over break-even", n: edge == null ? null : edge * 100, f: v => v == null ? "—" : (v >= 0 ? "+" : "−") + Math.abs(v).toFixed(1) + " pts", c: edge == null ? "" : edge >= 0 ? "pos" : "neg", a: accent(edge), h: `break-even is ${pct(be)} at 1:${CONFIG.rValues.TP}` },
+    { k: "Net R by market", html: marketCard(ts), a: "var(--navy-2)" },
     { k: "Expectancy", n: s.exp, f: v => v == null ? "—" : fmtR(v, true), c: s.exp == null ? "" : rCls(s.exp), a: accent(s.exp), h: "average R per closed trade" },
     { k: "Profit factor", n: s.pf === Infinity ? null : s.pf, f: v => s.pf === Infinity ? "∞" : pfTxt(v), c: s.pf == null ? "" : s.pf >= 1 ? "pos" : "neg", a: s.pf == null ? "transparent" : accent(s.pf - 1), h: `${fmtR(s.gw)} won · ${fmtR(s.gl)} lost` },
     { k: "Max drawdown", n: -s.maxDD, f: v => fmtR(v), c: s.maxDD ? "neg" : "zero", a: s.maxDD ? "var(--neg)" : "transparent", h: `now ${fmtR(-s.curDD)} from peak` },
     { k: "Best / worst month", t: best ? `${fmtR(best[1], true)} / ${fmtR(worst[1], true)}` : "—", h: best ? `${mName(best[0])} · ${mName(worst[0])}` : "", a: "var(--navy-2)" },
     { k: "Streaks", t: `${s.maxW}W / ${s.maxL}L`, h: s.curL ? `on a ${s.curL}-loss run now` : s.curW ? `on a ${s.curW}-win run now` : "longest TP / SL runs", a: "var(--navy-2)" }
   ];
-  $("#cards").innerHTML = C.map((c, i) => `<div class="card" style="--accent:${c.a}"><div class="k">${c.k}</div><div class="v ${c.c || ""}" id="cv${i}">${c.t ?? c.f(c.n)}</div><div class="h">${c.h || "&nbsp;"}</div>${c.meter ? `<div class="meter" title="Tick marks the ${pct(be)} break-even win rate"><i id="wrMeter" style="background:${edge != null && edge >= 0 ? "var(--pos)" : "var(--neg)"}"></i><b style="left:calc(${be * 100}% - 1px)"></b></div>` : ""}</div>`).join("");
+  $("#cards").innerHTML = C.map((c, i) => `<div class="card" style="--accent:${c.a}"><div class="k">${c.k}</div>${c.html ?? `<div class="v ${c.c || ""}" id="cv${i}">${c.t ?? c.f(c.n)}</div><div class="h">${c.h || "&nbsp;"}</div>`}${c.meter ? `<div class="meter" title="Tick marks the ${pct(be)} break-even win rate"><i id="wrMeter" style="background:${edge != null && edge >= 0 ? "var(--pos)" : "var(--neg)"}"></i><b style="left:calc(${be * 100}% - 1px)"></b></div>` : ""}</div>`).join("");
   C.forEach((c, i) => { if (c.t == null && c.n != null) countUp($("#cv" + i), c.n, c.f); });
   requestAnimationFrame(() => requestAnimationFrame(() => { const m = $("#wrMeter"); if (m) m.style.width = Math.min(100, (s.winRate || 0) * 100) + "%"; }));
 }
@@ -706,6 +721,23 @@ function renderCumulative(ts, years) {
     <tbody>${MONTHS.map((m, i) => `<tr><td>${m}</td>${cols.map(c => c[i] == null ? `<td></td>` : `<td class="m r ${rCls(c[i])}">${fmtR(c[i])}</td>`).join("")}</tr>`).join("")}</tbody>
     <tfoot><tr><td>Total</td>${totals.map(v => `<td class="m r ${rCls(v)}">${fmtR(v)}</td>`).join("")}</tr></tfoot>
   </table></div>`;
+}
+function renderNegative(ts) {
+  const closed = ts.filter(t => t.closed);
+  const line = (label, s) => `<tr><td>${label}</td><td>${s.n}</td><td>${s.wins}</td><td>${s.losses}</td>${wrCell(s.winRate)}<td class="m r ${rCls(s.net)}">${fmtR(s.net)}</td></tr>`;
+  const months = new Map(), years = new Map();
+  closed.forEach(t => { const m = t.date.getFullYear() * 12 + t.date.getMonth(), y = t.date.getFullYear();
+    if (!months.has(m)) months.set(m, []); months.get(m).push(t); if (!years.has(y)) years.set(y, []); years.get(y).push(t); });
+  const negM = [...months.entries()].map(([k, l]) => [k, stats(l)]).filter(([, s]) => s.net < -1e-9).sort((a, b) => b[0] - a[0]);
+  const negY = [...years.entries()].map(([k, l]) => [k, stats(l)]).filter(([, s]) => s.net < -1e-9).sort((a, b) => b[0] - a[0]);
+  const worst = negM.length ? negM.reduce((a, b) => b[1].net < a[1].net ? b : a) : null;
+  const head = (t, n, of) => `<tr class="grp"><td colspan="6">${t} <span class="muted" style="font-weight:500">· ${n} of ${of} negative</span></td></tr>`;
+  const none = t => `<tr><td colspan="6" class="none">No losing ${t} in this view</td></tr>`;
+  $("#tNeg").innerHTML = `<div class="title"><h3>Losing Months & Years</h3>${scope()}</div><div class="scroll"><table>
+    <thead><tr><th>Period</th><th>Trades</th><th>Wins</th><th>Losses</th><th>Win Rate</th><th class="m">Net R</th></tr></thead>
+    <tbody>${head("Months", negM.length, months.size)}${negM.length ? negM.map(([k, st]) => line(MONTHS[k % 12] + " " + Math.floor(k / 12), st)).join("") : none("months")}
+    ${head("Years", negY.length, years.size)}${negY.length ? negY.map(([k, st]) => line(String(k), st)).join("") : none("years")}</tbody></table></div>
+    ${worst ? `<div class="negnote">Worst month: <b class="neg">${MONTHS[worst[0] % 12]} ${Math.floor(worst[0] / 12)}</b> at <b class="neg">${fmtR(worst[1].net)}</b></div>` : ""}`;
 }
 function renderSummary(ts) {
   const be = bePct(), mk = groupKeys(ts.filter(t => t.closed), "market");
