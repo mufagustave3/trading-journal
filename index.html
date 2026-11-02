@@ -235,6 +235,7 @@ td.wr span{display:inline-block;min-width:62px;padding:3px 8px;border-radius:6px
 .summary td.wr{text-align:right;padding:4px 10px}
 tr.grp td{font-weight:600;background:var(--surface-2)}
 tr.sub td{font-size:13px;color:var(--ink-2)}
+tr.sub td.pos{color:var(--pos)}tr.sub td.neg{color:var(--neg)}tr.sub td.zero{color:var(--zero)}
 tr.sub td:first-child{padding-left:30px;position:relative}
 tr.sub td:first-child::before{content:"";position:absolute;left:16px;top:50%;width:8px;height:1px;background:var(--muted)}
 .summary th{text-align:right}.summary th:first-child{text-align:left}
@@ -709,9 +710,9 @@ function renderCardsView(ts) {
     <section class="cards" id="cards"></section>
     <section class="grid row1"><div class="tbl" id="tMonthly"></div><div class="tbl" id="tSummary"></div></section>
     <section class="tbl" id="tCum"></section>
-    <section class="grid row2"><div class="stack"><div class="tbl" id="tDir"></div><div class="tbl" id="tMarket"></div></div><div class="tbl" id="tNeg"></div></section>
+    <section class="grid row2"><div class="stack"><div class="tbl" id="tDir"></div><div class="tbl" id="tMarket"></div></div><div class="stack"><div class="tbl" id="tNeg"></div><div class="tbl" id="tYearMkt"></div></div></section>
     <section class="grid row2"><div class="tbl" id="tSession"></div><div class="tbl" id="tSetup"></div></section>`;
-  renderCards(ts); renderMonthly(ts, years); renderCumulative(ts, years); renderSummary(ts); renderNegative(ts);
+  renderCards(ts); renderMonthly(ts, years); renderCumulative(ts, years); renderSummary(ts); renderNegative(ts); renderYearByMarket(ts);
   renderGroup(ts, "#tDir", "Performance by Direction", "Direction", "direction", ["BUY", "SELL"]);
   renderGroup(ts, "#tMarket", "Performance by Market", "Market", "market");
   renderGroup(ts, "#tSession", "Performance by Session", "Session", "session", ["Asia", "London", "New York"]);
@@ -829,6 +830,20 @@ function renderNegative(ts) {
     <tbody>${head("Months", negM.length, months.size)}${negM.length ? negM.map(([k, st]) => line(MONTHS[k % 12] + " " + Math.floor(k / 12), st)).join("") : none("months")}
     ${head("Years", negY.length, years.size)}${negY.length ? negY.map(([k, st]) => line(String(k), st)).join("") : none("years")}</tbody></table></div>
     ${worst ? `<div class="negnote">Worst month: <b class="neg">${MONTHS[worst[0] % 12]} ${Math.floor(worst[0] / 12)}</b> at <b class="neg">${fmtR(worst[1].net)}</b></div>` : ""}`;
+}
+function renderYearByMarket(ts) {
+  const closed = ts.filter(t => t.closed), mk = groupKeys(closed, "market");
+  const el = $("#tYearMkt");
+  if (!closed.length) { el.innerHTML = `<div class="title"><h3>Total R by Year & Market</h3>${scope()}</div><table><tbody><tr><td class="none">No closed trades in this view</td></tr></tbody></table>`; return; }
+  const ys = closed.map(t => t.date.getFullYear()), y0 = Math.min(...ys), y1 = Math.max(...ys), years = [];
+  for (let y = y1; y >= y0; y--) years.push(y);
+  const cell = list => { const s = stats(list); return s.n ? `<td class="m r ${rCls(s.net)}" title="${s.n} trades · ${s.wins} TP · ${s.losses} SL · win rate ${pct(s.winRate)}">${fmtR(s.net)}</td>` : `<td class="m muted">–</td>`; };
+  const of = (y, m) => closed.filter(t => (y == null || t.date.getFullYear() === y) && (m == null || t.market === m));
+  el.innerHTML = `<div class="title"><h3>Total R by Year & Market</h3>${scope()}</div><div class="scroll"><table>
+    <thead><tr><th>Year</th>${mk.map(m => `<th class="m">${esc(m)}</th>`).join("")}<th class="m">Total</th></tr></thead>
+    <tbody>${years.map(y => `<tr><td>${y}</td>${mk.map(m => cell(of(y, m))).join("")}${cell(of(y, null)).replace('class="m r', 'style="font-weight:700" class="m r')}</tr>`).join("")}</tbody>
+    <tfoot><tr><td>All years</td>${mk.map(m => cell(of(null, m))).join("")}${cell(of(null, null))}</tr></tfoot>
+  </table></div>`;
 }
 function renderSummary(ts) {
   const be = bePct(), mk = groupKeys(ts.filter(t => t.closed), "market");
