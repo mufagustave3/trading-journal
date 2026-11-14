@@ -174,6 +174,50 @@ main > *,.view > *{min-width:0}
 .banner[hidden]{display:none!important}
 .banner button{font:inherit;font-size:12.5px;font-weight:600;border:1px solid var(--border);background:var(--surface-2);color:var(--ink);border-radius:7px;padding:5px 10px;cursor:pointer}
 
+/* ---------- recovery rule ---------- */
+.rulefg{position:relative}
+.rulechip{font:inherit;font-size:13px;font-weight:600;color:var(--ink-2);background:var(--chip);border:1px solid var(--border);border-radius:10px;padding:6px 12px;cursor:pointer;display:inline-flex;gap:7px;align-items:center;white-space:nowrap}
+.rulechip:hover{background:var(--hover)}
+.rulechip.on{background:var(--chip-on);color:var(--chip-on-ink);border-color:var(--chip-on)}
+.rulechip i{width:7px;height:7px;border-radius:50%;background:#f5a524;box-shadow:0 0 0 3px rgba(245,165,36,.25)}
+.rulepop{position:absolute;top:calc(100% + 8px);left:0;z-index:20;width:min(340px,calc(100vw - 32px));background:var(--surface-solid);border:1px solid var(--border);border-radius:14px;box-shadow:0 18px 48px rgba(10,16,30,.22);padding:12px;display:grid;gap:10px}
+.rulepop[hidden]{display:none}
+.rulepop .switch{padding:6px 4px}
+.rulepop .switch span{display:grid;gap:1px}.rulepop .switch small{font-size:12px;color:var(--muted);font-weight:400}
+.rulefields{display:grid;gap:10px}
+.rulebar{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;padding:10px 14px;border-radius:12px;font-size:13px;color:var(--ink-2);background:color-mix(in srgb,#f5a524 10%,var(--surface));border:1px solid color-mix(in srgb,#f5a524 45%,var(--border))}
+.rulebar[hidden]{display:none}
+.rulebar b{color:var(--ink)}
+.rb-tag{font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#8a5a00;background:color-mix(in srgb,#f5a524 30%,transparent);padding:3px 9px;border-radius:999px}
+:root[data-theme="dark"] .rb-tag{color:#ffd58a}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .rb-tag{color:#ffd58a}}
+.rulebar .linkbtn{margin-left:auto}
+.pill.REC{background:color-mix(in srgb,#f5a524 25%,transparent);color:var(--ink);font-size:10px}
+@media (max-width:640px){.rulepop{position:fixed;left:16px;right:16px;top:auto;bottom:calc(16px + env(safe-area-inset-bottom,0px));width:auto}}
+
+/* ---------- polish ---------- */
+body{background:radial-gradient(1200px 600px at 85% -10%,color-mix(in srgb,var(--navy-2) 16%,transparent),transparent 60%),radial-gradient(900px 500px at -10% 20%,color-mix(in srgb,var(--s1) 8%,transparent),transparent 60%),var(--page);background-attachment:fixed}
+.hero{background:radial-gradient(800px 240px at 80% 0%,rgba(120,160,230,.28),transparent 70%),linear-gradient(120deg,#142748 0%,var(--navy) 55%,#21427a 100%);box-shadow:0 1px 0 rgba(255,255,255,.06) inset,0 10px 30px rgba(10,20,40,.18)}
+.hero::after{content:"";position:absolute;inset:auto 0 0;height:1px;background:linear-gradient(90deg,transparent,rgba(160,195,255,.55),transparent)}
+h1{font-size:21px;letter-spacing:-.015em}
+.card{border-radius:16px;padding:18px 18px 15px;background:linear-gradient(180deg,color-mix(in srgb,var(--surface-solid) 92%,transparent),var(--surface))}
+.card::before{height:2px;opacity:.9}
+.card::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}
+.card:hover{box-shadow:0 14px 36px rgba(15,23,38,.14)}
+.card .k{display:flex;align-items:center;gap:7px}
+.card .k::before{content:"";width:6px;height:6px;border-radius:2px;background:var(--accent,var(--muted));opacity:.85}
+.card .v{font-size:28px}
+.tbl,.chartcard,.panel{border-radius:16px}
+.tbl .title{background:linear-gradient(180deg,#24427a,var(--navy));border-bottom:1px solid rgba(255,255,255,.06)}
+.tbl .title h3{letter-spacing:.005em}
+th{font-size:10.5px;letter-spacing:.06em}
+tbody tr:nth-child(even) td{background:color-mix(in srgb,var(--surface-2) 55%,transparent)}
+tbody tr:hover td{background:var(--hover)}
+.seg{border-radius:11px;box-shadow:0 1px 2px rgba(15,23,38,.04)}
+.seg button[aria-pressed="true"]{box-shadow:0 1px 3px rgba(15,23,38,.18)}
+.filterbar{box-shadow:0 6px 20px rgba(15,23,38,.05)}
+footer{opacity:.85}
+
 /* ---------- reveal animation ---------- */
 .reveal{animation:rise .55s var(--ease) both;animation-delay:var(--d,0ms)}
 @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
@@ -186,7 +230,7 @@ main > *,.view > *{min-width:0}
 .card .k{font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
 .card .v{font-family:var(--mono);font-size:26px;font-weight:600;letter-spacing:-.02em;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .card .h{font-size:12.5px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.card.wide{grid-column:span 3;display:flex;flex-wrap:wrap;gap:14px 28px;align-items:center}
+.card.wide{grid-column:span 2;display:flex;flex-wrap:wrap;gap:14px 28px;align-items:center}
 .goal-main{display:grid;gap:4px;min-width:0;flex:1 1 260px}
 .goal-h{white-space:normal!important}
 .goal-side{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;flex:2 1 420px;min-width:0}
@@ -434,6 +478,18 @@ body.no-shark footer{padding-bottom:36px}
       <button type="button" data-v="all">Both</button><button type="button" data-v="BUY">Buy</button><button type="button" data-v="SELL">Sell</button>
     </div></div>
     <div class="fg"><span>Session</span><div class="seg" id="fSession"></div></div>
+    <div class="fg rulefg"><span>Recovery rule</span>
+      <button type="button" class="rulechip" id="ruleBtn" aria-expanded="false" aria-controls="rulePop"></button>
+      <div class="rulepop" id="rulePop" hidden>
+        <label class="switch" for="ruleOn"><span><b>Use recovery rule</b><small>Recalculates every page with the new RR</small></span><input type="checkbox" id="ruleOn"></label>
+        <div class="rulefields">
+          <div class="field"><label for="ruleN">After this many SL in a row</label><input id="ruleN" type="number" min="1" step="1"></div>
+          <div class="field"><label for="ruleRR">New risk-reward (1 : X)</label><input id="ruleRR" type="number" min="0.1" step="0.5"></div>
+          <div class="field"><label for="ruleRisk">Risk size (% of normal)</label><input id="ruleRisk" type="number" min="1" max="100" step="5"></div>
+        </div>
+        <p class="note" id="ruleNote"></p>
+      </div>
+    </div>
     <div class="fb-end"><span class="count" id="count"></span><button type="button" class="linkbtn" id="resetF" hidden>Reset filters</button></div>
   </div>
 </nav>
@@ -442,6 +498,7 @@ body.no-shark footer{padding-bottom:36px}
   <main>
     <div class="banner" id="localBanner" hidden><span>Previewing a local file. This view isn't published; push the file to GitHub to update the site.</span><button id="backRemote" type="button">Back to published data</button></div>
     <div id="msg"></div>
+    <div class="rulebar" id="ruleBar" hidden></div>
     <section class="view" id="view-cards" hidden></section>
     <section class="view" id="view-log" hidden></section>
     <section class="view" id="view-charts" hidden></section>
@@ -475,7 +532,8 @@ const DEFAULT_RISK = { balance: 10000, riskPct: 1, maxTrades: 3, dailyLoss: 2, p
 const state = { trades: [], source: "remote", lastMod: null, year: null, view: "cards", f: { ...DEFAULT_F }, risk: { ...DEFAULT_RISK }, sort: { key: "no", dir: -1 } };
 const load = (k, d) => { try { return Object.assign(d, JSON.parse(localStorage.getItem(k) || "{}")); } catch (e) { return d; } };
 const store = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
-load("tj-filters", state.f); load("tj-risk", state.risk);
+state.rule = { on: false, n: 10, rr: 3, risk: 100 };
+load("tj-filters", state.f); load("tj-risk", state.risk); load("tj-rule", state.rule);
 const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const charts = {};
@@ -612,7 +670,25 @@ function loadLocal(file) {
   };
   fr.readAsArrayBuffer(file);
 }
-function apply(trades, animate) { state.trades = trades; buildFilters(); render(animate); }
+function apply(trades, animate) { state.trades = trades; applyRule(); buildFilters(); render(animate); }
+/* Recovery rule: after N SL in a row (BE doesn't break the run), TP pays the new RR and risk is scaled,
+   until the next TP; then back to normal. Applied to the real chronological order of all trades. */
+function applyRule() {
+  const R = state.rule, base = CONFIG.rValues, scale = Math.max(0, R.risk) / 100;
+  let streak = 0, rec = false; state.ruleHits = 0; state.ruleTrades = 0;
+  for (const t of state.trades) {
+    t.recovery = false;
+    if (!t.closed) { t.r = 0; continue; }
+    const inRec = R.on && rec;
+    t.recovery = inRec;
+    const tp = inRec ? R.rr : base.TP;
+    t.r = (t.result === "TP" ? tp : t.result === "SL" ? base.SL : base.BE) * (inRec ? scale : 1);
+    if (inRec) state.ruleTrades++;
+    if (t.result === "SL") streak++; else if (t.result === "TP") streak = 0;
+    if (t.result === "TP" && rec) rec = false;
+    if (R.on && !rec && streak >= R.n) { rec = true; state.ruleHits++; }
+  }
+}
 function setStatus(t, kind) { $("#status").innerHTML = `<span class="dot ${kind || ""}"></span>${esc(t)}`; }
 function showMsg(html) { $("#msg").innerHTML = html; document.querySelectorAll(".view").forEach(v => v.hidden = true); }
 $("#reload").onclick = () => { if (state.source === "remote") loadRemote(); };
@@ -643,6 +719,31 @@ function syncFilterUI() {
 }
 FILTERS.forEach(([id, k]) => $(id).addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; state.f[k] = b.dataset.v; store("tj-filters", state.f); syncFilterUI(); render(false); }));
 $("#resetF").onclick = () => { state.f = { ...DEFAULT_F }; store("tj-filters", state.f); syncFilterUI(); render(false); };
+/* ---------- recovery rule UI ---------- */
+function paintRule() {
+  const R = state.rule, b = $("#ruleBtn");
+  b.innerHTML = R.on ? `<i></i>${R.n} SL → 1:${R.rr}${R.risk < 100 ? ` · ${R.risk}% risk` : ""}` : "Off";
+  b.classList.toggle("on", R.on);
+  $("#ruleOn").checked = R.on; $("#ruleN").value = R.n; $("#ruleRR").value = R.rr; $("#ruleRisk").value = R.risk;
+  $("#ruleNote").textContent = `Normal trades: TP = +${CONFIG.rValues.TP}R, SL = ${CONFIG.rValues.SL}R. After ${R.n} SL in a row (breakevens don't break the run), TP pays +${(R.rr * R.risk / 100).toFixed(2)}R and SL costs ${(-R.risk / 100).toFixed(2)}R, in normal-risk R, until your next TP.`;
+  const bar = $("#ruleBar");
+  if (R.on && state.trades.length) {
+    bar.hidden = false;
+    bar.innerHTML = `<span class="rb-tag">Recovery rule on</span><span>After <b>${R.n} SL</b> in a row → <b>1:${R.rr}</b>${R.risk < 100 ? ` at <b>${R.risk}%</b> risk` : ""} until the next TP. Triggered <b>${state.ruleHits}×</b>, affecting <b>${state.ruleTrades}</b> trade${state.ruleTrades === 1 ? "" : "s"}.</span><button type="button" class="linkbtn" id="ruleOff">Turn off</button>`;
+    $("#ruleOff").onclick = () => { state.rule.on = false; ruleChanged(); };
+  } else bar.hidden = true;
+}
+function ruleChanged() { store("tj-rule", state.rule); applyRule(); paintRule(); render(false); }
+$("#ruleBtn").onclick = e => { e.stopPropagation(); const p = $("#rulePop"); p.hidden = !p.hidden; $("#ruleBtn").setAttribute("aria-expanded", !p.hidden); };
+$("#rulePop").addEventListener("click", e => e.stopPropagation());
+document.addEventListener("click", () => { $("#rulePop").hidden = true; $("#ruleBtn").setAttribute("aria-expanded", false); });
+addEventListener("keydown", e => { if (e.key === "Escape") $("#rulePop").hidden = true; });
+$("#ruleOn").onchange = e => { state.rule.on = e.target.checked; ruleChanged(); };
+[["#ruleN", "n", 1, 1], ["#ruleRR", "rr", 0.1, 0], ["#ruleRisk", "risk", 1, 0]].forEach(([id, k, min, int]) => $(id).addEventListener("change", e => {
+  let v = parseFloat(e.target.value); if (!isFinite(v) || v < min) v = min; if (k === "risk") v = Math.min(100, v); if (int) v = Math.round(v);
+  state.rule[k] = v; ruleChanged();
+}));
+paintRule();
 const isAll = () => Object.keys(DEFAULT_F).every(k => state.f[k] === "all");
 function filtered() {
   const now = new Date(); let from = null; const f = state.f;
@@ -686,6 +787,7 @@ function countUp(el, to, fmt, ms = 900) {
 
 /* ---------- render ---------- */
 function render(animate) {
+  paintRule();
   if (!state.trades.length) {
     $("#count").textContent = "";
     if (!$("#status .dot.err")) showMsg(`<div class="empty"><h2>No trades yet</h2><div>Log your first trade in <code>${esc(CONFIG.file)}</code> (Date and Result), save, and push it to GitHub.</div></div>`);
@@ -732,6 +834,23 @@ function projection(ts, target) {
   res.sort((a, b) => a - b);
   const q = p => res[Math.min(res.length - 1, Math.floor(p * res.length))];
   return { n, avg, months: Math.ceil(target / avg), p10: q(.1), p50: q(.5), p90: q(.9), capped: q(.9) >= CAP };
+}
+function streakCard(ts) {
+  const N = state.rule.n, c = ts.filter(t => t.closed), runs = [];
+  let cur = null;
+  for (const t of c) {
+    if (t.result === "SL") { if (!cur) cur = { len: 0, from: t.date, to: t.date }; cur.len++; cur.to = t.date; }
+    else if (t.result === "TP") { if (cur) runs.push(cur); cur = null; }
+  }
+  const ongoing = cur; if (cur) runs.push(cur);
+  const hits = runs.filter(r => r.len >= N), longest = runs.reduce((m, r) => Math.max(m, r.len), 0);
+  const fd = d => MONTHS[d.getMonth()].slice(0, 3) + " " + d.getDate() + ", " + d.getFullYear();
+  const last = hits[hits.length - 1];
+  const h1 = hits.length ? `last: ${fd(last.from)} – ${fd(last.to)}${last === ongoing ? " · still going" : ""}` : `longest run so far: ${longest} SL`;
+  const h2 = hits.length ? `${hits.length === 1 ? "once" : hits.length + " times"} · longest run ${longest} SL` : (ongoing ? `currently on ${ongoing.len} SL in a row` : "no losing run is active");
+  return `<div class="card" style="--accent:${hits.length ? "var(--neg)" : "var(--pos)"}"><div class="k">${N}+ losses in a row</div>
+    <div class="v ${hits.length ? "neg" : "pos"}">${hits.length ? hits.length + "×" : "Never"}</div>
+    <div class="h" title="${hits.map(r => `${r.len} SL: ${fd(r.from)} – ${fd(r.to)}`).join("\n")}">${h1}</div><div class="h">${h2}</div></div>`;
 }
 function breakCard(ts) {
   const DAY = 86400000, day0 = d => new Date(d.getFullYear(), d.getMonth(), d.getDate());
@@ -802,7 +921,7 @@ function renderCards(ts) {
     { k: "Best / worst month", t: best ? `${fmtR(best[1], true)} / ${fmtR(worst[1], true)}` : "—", h: best ? `${mName(best[0])} · ${mName(worst[0])}` : "", a: "var(--navy-2)" },
     { k: "Streaks", t: `${s.maxW}W / ${s.maxL}L`, h: s.curL ? `on a ${s.curL}-loss run now` : s.curW ? `on a ${s.curW}-win run now` : "longest TP / SL runs", a: "var(--navy-2)" }
   ];
-  $("#cards").innerHTML = C.map((c, i) => `<div class="card" style="--accent:${c.a}"><div class="k">${c.k}</div>${c.html ?? `<div class="v ${c.c || ""}" id="cv${i}">${c.t ?? c.f(c.n)}</div><div class="h">${c.h || "&nbsp;"}</div>`}${c.meter ? `<div class="meter" title="Tick marks the ${pct(be)} break-even win rate"><i id="wrMeter" style="background:${edge != null && edge >= 0 ? "var(--pos)" : "var(--neg)"}"></i><b style="left:calc(${be * 100}% - 1px)"></b></div>` : ""}</div>`).join("") + breakCard(ts) + goalCard(ts);
+  $("#cards").innerHTML = C.map((c, i) => `<div class="card" style="--accent:${c.a}"><div class="k">${c.k}</div>${c.html ?? `<div class="v ${c.c || ""}" id="cv${i}">${c.t ?? c.f(c.n)}</div><div class="h">${c.h || "&nbsp;"}</div>`}${c.meter ? `<div class="meter" title="Tick marks the ${pct(be)} break-even win rate"><i id="wrMeter" style="background:${edge != null && edge >= 0 ? "var(--pos)" : "var(--neg)"}"></i><b style="left:calc(${be * 100}% - 1px)"></b></div>` : ""}</div>`).join("") + breakCard(ts) + streakCard(ts) + goalCard(ts);
   C.forEach((c, i) => { if (c.t == null && c.n != null) countUp($("#cv" + i), c.n, c.f); });
   requestAnimationFrame(() => requestAnimationFrame(() => { const m = $("#wrMeter"); if (m) m.style.width = Math.min(100, (s.winRate || 0) * 100) + "%"; }));
 }
@@ -909,7 +1028,7 @@ const LEFT = ["market", "direction", "session", "setup", "notes", "shot"];
 const COLS = [
   ["no", "#", t => t.no], ["date", "Date", t => ymd(t.date)], ["time", "Time", t => t.hasTime ? pad(t.date.getHours()) + ":" + pad(t.date.getMinutes()) : ""],
   ["market", "Market", t => esc(t.market)], ["direction", "Direction", t => esc(t.direction)], ["session", "Session", t => esc(t.session)],
-  ["setup", "Setup", t => esc(t.setup)], ["result", "Result", t => `<span class="pill ${t.result}">${esc(t.result)}</span>`],
+  ["setup", "Setup", t => esc(t.setup)], ["result", "Result", t => `<span class="pill ${t.result}">${esc(t.result)}</span>${t.recovery ? ` <span class="pill REC" title="Taken under the recovery rule">REC</span>` : ""}`],
   ["r", "R", t => t.closed ? `<span class="${rCls(t.r)}">${fmtR(t.r, true)}</span>` : ""], ["notes", "Notes", t => esc(t.notes)],
   ["shot", "Screenshot", t => t.shot ? `<a href="${esc(t.shot)}" target="_blank" rel="noopener">View ↗</a>` : ""]
 ];
