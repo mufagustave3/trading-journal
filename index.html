@@ -230,7 +230,8 @@ footer{opacity:.85}
 .card .k{font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
 .card .v{font-family:var(--mono);font-size:26px;font-weight:600;letter-spacing:-.02em;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .card .h{font-size:12.5px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.card.wide{grid-column:span 2;display:flex;flex-wrap:wrap;gap:14px 28px;align-items:center}
+.card.span2{grid-column:span 2}
+.card.wide{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:14px 28px;align-items:center}
 .goal-main{display:grid;gap:4px;min-width:0;flex:1 1 260px}
 .goal-h{white-space:normal!important}
 .goal-side{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;flex:2 1 420px;min-width:0}
@@ -238,12 +239,15 @@ footer{opacity:.85}
 .goal-side span{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 .goal-side b{font-family:var(--mono);font-size:17px;font-weight:600;white-space:nowrap}
 .goal-side small{font-size:11.5px;color:var(--ink-2)}
-@media (max-width:860px){.card.wide{grid-column:1/-1}}
+@media (max-width:860px){.card.wide,.card.span2{grid-column:1/-1}}
 @media (max-width:640px){.goal-side{grid-template-columns:minmax(0,1fr)}}
 .mklist{display:grid;gap:6px;margin:4px 0 2px}
 .mk{display:grid;grid-template-columns:62px minmax(0,1fr) auto;gap:8px;align-items:center;font-size:12.5px;font-weight:600;color:var(--ink-2)}
 .mk i{height:6px;border-radius:3px;background:var(--line);overflow:hidden}
 .mk i b{display:block;height:100%;border-radius:3px}
+.mk em small{font-size:11px;font-weight:500;color:var(--muted);margin-left:2px}
+.ay .mk{grid-template-columns:70px minmax(0,1fr) auto 44px}
+.ayn{font-size:11.5px;font-weight:500;color:var(--muted);text-align:right}
 .mk em{font-style:normal;font-family:var(--mono);font-size:14px;font-weight:600;text-align:right}
 .meter{position:relative;height:6px;border-radius:3px;background:var(--line);margin-top:6px}
 .meter i{position:absolute;inset:0 auto 0 0;border-radius:3px;width:0;transition:width 1s var(--ease)}
@@ -835,6 +839,17 @@ function projection(ts, target) {
   const q = p => res[Math.min(res.length - 1, Math.floor(p * res.length))];
   return { n, avg, months: Math.ceil(target / avg), p10: q(.1), p50: q(.5), p90: q(.9), capped: q(.9) >= CAP };
 }
+function avgYearCard(ts) {
+  const closed = ts.filter(t => t.closed), mk = groupKeys(closed, "market");
+  const head = `<div class="card span2" style="--accent:var(--navy-2)"><div class="k">Average R per year by market</div>`;
+  if (!closed.length) return head + `<div class="v">—</div><div class="h">no closed trades in this view</div></div>`;
+  const row = list => { const yrs = new Set(list.map(t => t.date.getFullYear())), tot = list.reduce((a, t) => a + t.r, 0); return { yrs: yrs.size, tot, avg: tot / yrs.size }; };
+  const rows = mk.map(m => ({ m, ...row(closed.filter(t => t.market === m)) })).sort((a, b) => b.avg - a.avg);
+  const all = row(closed), max = Math.max(1e-9, ...rows.map(r => Math.abs(r.avg)));
+  const yl = n => n + (n === 1 ? " yr" : " yrs");
+  return head + `<div class="mklist ay">${rows.map(r => `<div class="mk"><span>${esc(r.m)}</span><i><b style="width:${(Math.abs(r.avg) / max * 100).toFixed(1)}%;background:var(${r.avg >= 0 ? "--pos" : "--neg"})"></b></i><em class="${rCls(r.avg)}">${fmtR(r.avg, true)}<small>/yr</small></em><small class="ayn" title="${fmtR(r.tot, true)} total">${yl(r.yrs)}</small></div>`).join("")}</div>
+    <div class="h">All markets: <b class="${rCls(all.avg)}">${fmtR(all.avg, true)}</b> per year over ${yl(all.yrs)} · years with at least one closed trade</div></div>`;
+}
 function streakCard(ts) {
   const N = state.rule.n, c = ts.filter(t => t.closed), runs = [];
   let cur = null;
@@ -921,7 +936,7 @@ function renderCards(ts) {
     { k: "Best / worst month", t: best ? `${fmtR(best[1], true)} / ${fmtR(worst[1], true)}` : "—", h: best ? `${mName(best[0])} · ${mName(worst[0])}` : "", a: "var(--navy-2)" },
     { k: "Streaks", t: `${s.maxW}W / ${s.maxL}L`, h: s.curL ? `on a ${s.curL}-loss run now` : s.curW ? `on a ${s.curW}-win run now` : "longest TP / SL runs", a: "var(--navy-2)" }
   ];
-  $("#cards").innerHTML = C.map((c, i) => `<div class="card" style="--accent:${c.a}"><div class="k">${c.k}</div>${c.html ?? `<div class="v ${c.c || ""}" id="cv${i}">${c.t ?? c.f(c.n)}</div><div class="h">${c.h || "&nbsp;"}</div>`}${c.meter ? `<div class="meter" title="Tick marks the ${pct(be)} break-even win rate"><i id="wrMeter" style="background:${edge != null && edge >= 0 ? "var(--pos)" : "var(--neg)"}"></i><b style="left:calc(${be * 100}% - 1px)"></b></div>` : ""}</div>`).join("") + breakCard(ts) + streakCard(ts) + goalCard(ts);
+  $("#cards").innerHTML = C.map((c, i) => `<div class="card" style="--accent:${c.a}"><div class="k">${c.k}</div>${c.html ?? `<div class="v ${c.c || ""}" id="cv${i}">${c.t ?? c.f(c.n)}</div><div class="h">${c.h || "&nbsp;"}</div>`}${c.meter ? `<div class="meter" title="Tick marks the ${pct(be)} break-even win rate"><i id="wrMeter" style="background:${edge != null && edge >= 0 ? "var(--pos)" : "var(--neg)"}"></i><b style="left:calc(${be * 100}% - 1px)"></b></div>` : ""}</div>`).join("") + breakCard(ts) + streakCard(ts) + avgYearCard(ts) + goalCard(ts);
   C.forEach((c, i) => { if (c.t == null && c.n != null) countUp($("#cv" + i), c.n, c.f); });
   requestAnimationFrame(() => requestAnimationFrame(() => { const m = $("#wrMeter"); if (m) m.style.width = Math.min(100, (s.winRate || 0) * 100) + "%"; }));
 }
