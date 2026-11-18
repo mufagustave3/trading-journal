@@ -231,7 +231,15 @@ footer{opacity:.85}
 .card .v{font-family:var(--mono);font-size:26px;font-weight:600;letter-spacing:-.02em;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .card .h{font-size:12.5px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .card.span2{grid-column:span 2}
-.card.wide{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:14px 28px;align-items:center}
+.card .h.wrap{white-space:normal}
+.srs{display:grid;gap:2px;margin:4px 0 4px}
+.sr{display:grid;grid-template-columns:44px 64px minmax(0,1fr);gap:10px;align-items:center;padding:5px 8px;border-radius:8px;font-size:13px}
+.sr.hit{background:color-mix(in srgb,var(--neg) 8%,transparent)}
+.sr-h{font-size:10.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding-block:0 2px}
+.sr-n{font-family:var(--mono);font-weight:600}
+.sr b{font-family:var(--mono);font-size:15px;font-weight:600}
+.sr-d{color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card.wide{grid-column:span 2;display:flex;flex-wrap:wrap;gap:14px 28px;align-items:center}
 .goal-main{display:grid;gap:4px;min-width:0;flex:1 1 260px}
 .goal-h{white-space:normal!important}
 .goal-side{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;flex:2 1 420px;min-width:0}
@@ -520,7 +528,8 @@ const CONFIG = {
   rValues: { TP: 6, SL: -1, BE: 0 },  // R earned per result (match your Dashboard)
   screenshotFolder: "screenshots",    // image files named in the Screenshot column live here
   cumulativeYears: 10,
-  targetR: 30,                        // goal for the "Time to +30R" card                 // how many years the Cumulative R table shows
+  targetR: 30,
+  streakLevels: [10, 15, 20, 25],      // rows on the "Losses in a row" card                        // goal for the "Time to +30R" card                 // how many years the Cumulative R table shows
   contractSizes: { XAUUSD: 100, GBPUSD: 100000, EURUSD: 100000, ETHUSD: 1, BTCUSD: 1 }, // units per 1 lot (check your broker)
   refreshMinutes: 5,
   // Access code: visit your site with ?makecode at the end of the address to create the line below. null = no code.
@@ -538,6 +547,7 @@ const load = (k, d) => { try { return Object.assign(d, JSON.parse(localStorage.g
 const store = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
 state.rule = { on: false, n: 10, rr: 3, risk: 100 };
 load("tj-filters", state.f); load("tj-risk", state.risk); load("tj-rule", state.rule);
+const DAYS_LONG = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const charts = {};
@@ -851,21 +861,39 @@ function avgYearCard(ts) {
     <div class="h">All markets: <b class="${rCls(all.avg)}">${fmtR(all.avg, true)}</b> per year over ${yl(all.yrs)} · years with at least one closed trade</div></div>`;
 }
 function streakCard(ts) {
-  const N = state.rule.n, c = ts.filter(t => t.closed), runs = [];
+  const c = ts.filter(t => t.closed), runs = [];
   let cur = null;
   for (const t of c) {
     if (t.result === "SL") { if (!cur) cur = { len: 0, from: t.date, to: t.date }; cur.len++; cur.to = t.date; }
     else if (t.result === "TP") { if (cur) runs.push(cur); cur = null; }
   }
   const ongoing = cur; if (cur) runs.push(cur);
-  const hits = runs.filter(r => r.len >= N), longest = runs.reduce((m, r) => Math.max(m, r.len), 0);
-  const fd = d => MONTHS[d.getMonth()].slice(0, 3) + " " + d.getDate() + ", " + d.getFullYear();
-  const last = hits[hits.length - 1];
-  const h1 = hits.length ? `last: ${fd(last.from)} – ${fd(last.to)}${last === ongoing ? " · still going" : ""}` : `longest run so far: ${longest} SL`;
-  const h2 = hits.length ? `${hits.length === 1 ? "once" : hits.length + " times"} · longest run ${longest} SL` : (ongoing ? `currently on ${ongoing.len} SL in a row` : "no losing run is active");
-  return `<div class="card" style="--accent:${hits.length ? "var(--neg)" : "var(--pos)"}"><div class="k">${N}+ losses in a row</div>
-    <div class="v ${hits.length ? "neg" : "pos"}">${hits.length ? hits.length + "×" : "Never"}</div>
-    <div class="h" title="${hits.map(r => `${r.len} SL: ${fd(r.from)} – ${fd(r.to)}`).join("\n")}">${h1}</div><div class="h">${h2}</div></div>`;
+  const longest = runs.reduce((m, r) => Math.max(m, r.len), 0);
+  const fd = (d, y) => MONTHS[d.getMonth()].slice(0, 3) + " " + d.getDate() + (y ? ", " + d.getFullYear() : "");
+  const span = r => r.from.getFullYear() === r.to.getFullYear() ? `${fd(r.from)} – ${fd(r.to, 1)}` : `${fd(r.from, 1)} – ${fd(r.to, 1)}`;
+  const rows = CONFIG.streakLevels.map(N => {
+    const hits = runs.filter(r => r.len >= N), last = hits[hits.length - 1];
+    return `<div class="sr ${hits.length ? "hit" : ""}" title="${hits.map(r => `${r.len} SL: ${span(r)}`).join("\n") || "Never happened"}">
+      <span class="sr-n">${N}+</span><b class="${hits.length ? "neg" : "pos"}">${hits.length ? hits.length + "×" : "Never"}</b>
+      <span class="sr-d">${last ? span(last) + (last === ongoing ? " · still going" : "") : "–"}</span></div>`;
+  }).join("");
+  const worst = CONFIG.streakLevels.filter(N => longest >= N).pop();
+  return `<div class="card span2" style="--accent:${worst ? "var(--neg)" : "var(--pos)"}"><div class="k">Losses in a row</div>
+    <div class="srs"><div class="sr sr-h"><span>Run</span><span>Times</span><span>Most recent</span></div>${rows}</div>
+    <div class="h">Longest run <b class="${longest ? "neg" : ""}">${longest} SL</b>${ongoing ? ` · currently on <b class="neg">${ongoing.len} SL</b> in a row` : " · no losing run active"} · breakevens don't break a run</div></div>`;
+}
+function dayLossCard(ts) {
+  const days = new Map();
+  ts.filter(t => t.closed).forEach(t => { const k = ymd(t.date); const d = days.get(k) || { sl: 0, n: 0, r: 0, date: t.date }; d.n++; d.r += t.r; if (t.result === "SL") d.sl++; days.set(k, d); });
+  const list = [...days.values()], max = list.reduce((m, d) => Math.max(m, d.sl), 0);
+  const head = `<div class="card" style="--accent:${max >= 3 ? "var(--neg)" : "var(--navy-2)"}"><div class="k">Most SL in one day</div>`;
+  if (!max) return head + `<div class="v pos">0</div><div class="h">no losing trades in this view</div></div>`;
+  const top = list.filter(d => d.sl === max).sort((a, b) => b.date - a.date), d = top[0];
+  const fd = x => DAYS_LONG[x.getDay()].slice(0, 3) + " " + MONTHS[x.getMonth()].slice(0, 3) + " " + x.getDate() + ", " + x.getFullYear();
+  const avg = list.filter(x => x.sl).reduce((a, x) => a + x.sl, 0) / list.filter(x => x.sl).length;
+  return head + `<div class="v neg">${max} SL</div>
+    <div class="h" title="${top.map(x => fd(x.date) + ": " + x.sl + " SL of " + x.n + " trades, " + fmtR(x.r, true)).join("\n")}">${fd(d.date)}${top.length > 1 ? ` · happened ${top.length}×` : ""}</div>
+    <div class="h wrap">${d.n} trade${d.n === 1 ? "" : "s"} that day · ${fmtR(d.r, true)} · avg ${avg.toFixed(1)} SL on losing days</div></div>`;
 }
 function breakCard(ts) {
   const DAY = 86400000, day0 = d => new Date(d.getFullYear(), d.getMonth(), d.getDate());
@@ -936,7 +964,7 @@ function renderCards(ts) {
     { k: "Best / worst month", t: best ? `${fmtR(best[1], true)} / ${fmtR(worst[1], true)}` : "—", h: best ? `${mName(best[0])} · ${mName(worst[0])}` : "", a: "var(--navy-2)" },
     { k: "Streaks", t: `${s.maxW}W / ${s.maxL}L`, h: s.curL ? `on a ${s.curL}-loss run now` : s.curW ? `on a ${s.curW}-win run now` : "longest TP / SL runs", a: "var(--navy-2)" }
   ];
-  $("#cards").innerHTML = C.map((c, i) => `<div class="card" style="--accent:${c.a}"><div class="k">${c.k}</div>${c.html ?? `<div class="v ${c.c || ""}" id="cv${i}">${c.t ?? c.f(c.n)}</div><div class="h">${c.h || "&nbsp;"}</div>`}${c.meter ? `<div class="meter" title="Tick marks the ${pct(be)} break-even win rate"><i id="wrMeter" style="background:${edge != null && edge >= 0 ? "var(--pos)" : "var(--neg)"}"></i><b style="left:calc(${be * 100}% - 1px)"></b></div>` : ""}</div>`).join("") + breakCard(ts) + streakCard(ts) + avgYearCard(ts) + goalCard(ts);
+  $("#cards").innerHTML = C.map((c, i) => `<div class="card" style="--accent:${c.a}"><div class="k">${c.k}</div>${c.html ?? `<div class="v ${c.c || ""}" id="cv${i}">${c.t ?? c.f(c.n)}</div><div class="h">${c.h || "&nbsp;"}</div>`}${c.meter ? `<div class="meter" title="Tick marks the ${pct(be)} break-even win rate"><i id="wrMeter" style="background:${edge != null && edge >= 0 ? "var(--pos)" : "var(--neg)"}"></i><b style="left:calc(${be * 100}% - 1px)"></b></div>` : ""}</div>`).join("") + breakCard(ts) + dayLossCard(ts) + streakCard(ts) + avgYearCard(ts) + goalCard(ts);
   C.forEach((c, i) => { if (c.t == null && c.n != null) countUp($("#cv" + i), c.n, c.f); });
   requestAnimationFrame(() => requestAnimationFrame(() => { const m = $("#wrMeter"); if (m) m.style.width = Math.min(100, (s.winRate || 0) * 100) + "%"; }));
 }
