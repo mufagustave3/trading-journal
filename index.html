@@ -203,7 +203,7 @@ main > *,.view > *{min-width:0}
 .sr-n{font-weight:600}
 .sr b{font-size:14px;font-weight:600}
 .sr-d{color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.card.wide{grid-column:span 2;display:flex;flex-wrap:wrap;gap:14px 28px;align-items:center}
+.card.wide{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:14px 28px;align-items:center}
 .goal-main{display:grid;gap:4px;min-width:0;flex:1 1 260px}
 .goal-h{white-space:normal!important}
 .goal-side{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;flex:2 1 420px;min-width:0}
@@ -219,6 +219,9 @@ main > *,.view > *{min-width:0}
 .mk i b{display:block;height:100%;border-radius:3px}
 .mk em small{font-size:11px;font-weight:500;color:var(--muted);margin-left:2px}
 .ay .mk{grid-template-columns:70px minmax(0,1fr) auto 44px}
+.cr .mk{grid-template-columns:86px minmax(0,1fr) auto 118px}
+.crn{white-space:nowrap}
+.mk-all{border-top:1px solid var(--line);padding-top:6px;color:var(--ink)}
 .ayn{font-size:11.5px;font-weight:500;color:var(--muted);text-align:right}
 .mk em{font-style:normal;font-size:13.5px;font-weight:600;text-align:right}
 .meter{position:relative;height:6px;border-radius:3px;background:var(--line);margin-top:6px}
@@ -410,9 +413,9 @@ const CONFIG = {
   sheet: null,                        // sheet name, or null = first sheet
   rValues: { TP: 6, SL: -1, BE: 2 },  // R earned per result (match your Dashboard)
   screenshotFolder: "screenshots",    // image files named in the Screenshot column live here
-  cumulativeYears: 10,
-  targetR: 30,
-  streakLevels: [10, 15, 20, 25],      // rows on the "Losses in a row" card                        // goal for the "Time to +30R" card                 // how many years the Cumulative R table shows
+  cumulativeYears: 10,                // how many years the Cumulative R table shows
+  targetR: 30,                        // goal for the "Time to +30R" card
+  streakLevels: [10, 15, 20, 25],     // rows on the "Losses in a row" card
   contractSizes: { XAUUSD: 100, GBPUSD: 100000, EURUSD: 100000, ETHUSD: 1, BTCUSD: 1 }, // units per 1 lot (check your broker)
   refreshMinutes: 5,
   // Access code: visit your site with ?makecode at the end of the address to create the line below. null = no code.
@@ -734,6 +737,19 @@ function projection(ts, target) {
   const q = p => res[Math.min(res.length - 1, Math.floor(p * res.length))];
   return { n, avg, months: Math.ceil(target / avg), p10: q(.1), p50: q(.5), p90: q(.9), capped: q(.9) >= CAP };
 }
+function curRunCard(ts) {
+  // current losing run: SL since the last TP, counted backwards from the latest closed trade (BE doesn't break it)
+  const run = list => { let n = 0, from = null; for (let i = list.length - 1; i >= 0; i--) { const t = list[i]; if (t.result === "TP") break; if (t.result === "SL") { n++; from = t.date; } } return { n, from }; };
+  const closed = ts.filter(t => t.closed), mk = groupKeys(closed, "market");
+  const head = `<div class="card span2" style="--accent:var(--navy-2)"><div class="k">Current losing run</div>`;
+  if (!closed.length) return head + `<div class="v">—</div><div class="h">no closed trades in this view</div></div>`;
+  const N = state.rule.n || 10, fd = d => MONTHS[d.getMonth()].slice(0, 3) + " " + d.getDate() + ", " + d.getFullYear();
+  const rows = mk.map(m => ({ m, ...run(closed.filter(t => t.market === m)) })).sort((a, b) => b.n - a.n);
+  const all = run(closed);
+  const line = (label, r, strong) => `<div class="mk${strong ? " mk-all" : ""}"><span>${esc(label)}</span><i title="${r.n} of ${N} SL (recovery rule level)"><b style="width:${Math.min(100, r.n / N * 100).toFixed(1)}%;background:var(${r.n >= N ? "--neg" : "--s2"})"></b></i><em class="${r.n ? "neg" : "pos"}">${r.n ? r.n + " SL" : "0"}</em><small class="ayn crn">${r.n ? "since " + fd(r.from) : "last trade a win"}</small></div>`;
+  return head + `<div class="mklist ay cr">${rows.map(r => line(r.m, r)).join("")}${mk.length > 1 ? line("All markets", all, true) : ""}</div>
+    <div class="h">Losses since the last TP, newest trade first · breakevens don't break a run · bar fills at ${N} SL</div></div>`;
+}
 function avgYearCard(ts) {
   const closed = ts.filter(t => t.closed), mk = groupKeys(closed, "market");
   const head = `<div class="card span2" style="--accent:var(--navy-2)"><div class="k">Average R per year by market</div>`;
@@ -849,7 +865,7 @@ function renderCards(ts) {
     { k: "Best / worst month", t: best ? `${fmtR(best[1], true)} / ${fmtR(worst[1], true)}` : "—", h: best ? `${mName(best[0])} · ${mName(worst[0])}` : "", a: "var(--navy-2)" },
     { k: "Streaks", t: `${s.maxW}W / ${s.maxL}L`, h: s.curL ? `on a ${s.curL}-loss run now` : s.curW ? `on a ${s.curW}-win run now` : "longest TP / SL runs", a: "var(--navy-2)" }
   ];
-  $("#cards").innerHTML = C.map((c, i) => `<div class="card" style="--accent:${c.a}"><div class="k">${c.k}</div>${c.html ?? `<div class="v ${c.c || ""}" id="cv${i}">${c.t ?? c.f(c.n)}</div><div class="h">${c.h || "&nbsp;"}</div>`}${c.meter ? `<div class="meter" title="Tick marks the ${pct(be)} break-even win rate"><i id="wrMeter" style="background:${edge != null && edge >= 0 ? "var(--pos)" : "var(--neg)"}"></i><b style="left:calc(${be * 100}% - 1px)"></b></div>` : ""}</div>`).join("") + breakCard(ts) + dayLossCard(ts) + streakCard(ts) + avgYearCard(ts) + goalCard(ts);
+  $("#cards").innerHTML = C.map((c, i) => `<div class="card" style="--accent:${c.a}"><div class="k">${c.k}</div>${c.html ?? `<div class="v ${c.c || ""}" id="cv${i}">${c.t ?? c.f(c.n)}</div><div class="h">${c.h || "&nbsp;"}</div>`}${c.meter ? `<div class="meter" title="Tick marks the ${pct(be)} break-even win rate"><i id="wrMeter" style="background:${edge != null && edge >= 0 ? "var(--pos)" : "var(--neg)"}"></i><b style="left:calc(${be * 100}% - 1px)"></b></div>` : ""}</div>`).join("") + breakCard(ts) + dayLossCard(ts) + streakCard(ts) + avgYearCard(ts) + curRunCard(ts) + goalCard(ts);
   C.forEach((c, i) => { if (c.t == null && c.n != null) countUp($("#cv" + i), c.n, c.f); });
   requestAnimationFrame(() => requestAnimationFrame(() => { const m = $("#wrMeter"); if (m) m.style.width = Math.min(100, (s.winRate || 0) * 100) + "%"; }));
 }
