@@ -182,7 +182,39 @@ main > *,.view > *{min-width:0}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .rb-tag{color:#ffd58a}}
 .rulebar .linkbtn{margin-left:auto}
 .pill.REC{background:color-mix(in srgb,#f5a524 25%,transparent);color:var(--ink);font-size:10px}
-@media (max-width:640px){.rulepop{position:fixed;left:16px;right:16px;top:auto;bottom:calc(16px + env(safe-area-inset-bottom,0px));width:auto}}
+@media (max-width:640px){.rulefg{flex-wrap:wrap}.rulepop,.periodpop{position:static;flex-basis:100%;width:100%;box-shadow:none;margin-top:4px}}
+
+/* ---------- period picker ---------- */
+.periodpop{width:min(380px,calc(100vw - 32px))}
+.pp-sec{display:grid;gap:8px}
+.pp-l{font-size:12px;font-weight:600;color:var(--ink-2)}
+.pp-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.periodpop .seg{flex-wrap:wrap}
+.pp-apply{justify-self:start;font:inherit;font-size:13px;font-weight:600;color:#fff;background:var(--brand);border:0;border-radius:8px;padding:7px 14px;cursor:pointer}
+.pp-apply:hover{filter:brightness(1.1)}
+#pErr{color:var(--neg)}
+#pErr:empty{display:none}
+.caret{font-size:10px;opacity:.6;margin-left:2px}
+
+/* ---------- card detail panels ---------- */
+.card.has-tip{cursor:help}
+.card.has-tip:hover,.card.has-tip.tip-on{border-color:color-mix(in srgb,var(--brand) 45%,var(--border))}
+.card.has-tip .k::after{content:"i";display:inline-grid;place-items:center;width:14px;height:14px;margin-left:6px;border-radius:50%;font-size:9.5px;font-weight:700;font-style:italic;color:var(--muted);border:1px solid var(--border);vertical-align:1px}
+.cardtip{position:fixed;z-index:50;width:min(360px,calc(100vw - 24px));max-height:min(70vh,520px);overflow:auto;background:var(--surface-solid);color:var(--ink);border:1px solid var(--border);border-radius:12px;box-shadow:0 18px 44px rgba(16,24,40,.18),0 2px 6px rgba(16,24,40,.06);padding:14px 14px 12px;font-size:13px;pointer-events:none;opacity:0;transform:translateY(4px);transition:opacity .14s ease,transform .14s ease}
+.cardtip.on{opacity:1;transform:none}
+.cardtip.touch{pointer-events:auto}
+.cardtip h4{margin:0 0 2px;font-size:14px;font-weight:600}
+.cardtip .tip-sub{margin:0 0 10px;color:var(--muted);font-size:12px;line-height:1.45}
+.cardtip table{width:100%;border-collapse:collapse;margin:0 0 8px}
+.cardtip th{background:none;color:var(--muted);font-size:10.5px;padding:4px 6px;border-bottom:1px solid var(--line);text-align:right}
+.cardtip th:first-child{text-align:left}
+.cardtip td{padding:4px 6px;font-size:12.5px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+.cardtip td:first-child{text-align:left;color:var(--ink-2)}
+.cardtip tr:last-child td{border-bottom:0}
+.cardtip tbody tr:hover td{background:none}
+.cardtip .tip-h{margin:10px 0 4px;font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+@media (max-width:640px){.cardtip td{white-space:normal;word-break:break-word}.cardtip td:first-child{width:42%}}
+.cardtip .tip-note{margin:6px 0 0;padding-top:8px;border-top:1px solid var(--line);color:var(--ink-2);font-size:12px;line-height:1.5}
 
 /* ---------- reveal animation ---------- */
 .reveal{animation:rise .35s var(--ease) both;animation-delay:calc(var(--d,0ms) * .5)}
@@ -197,7 +229,7 @@ main > *,.view > *{min-width:0}
 .card.span2{grid-column:span 2}
 .card .h.wrap{white-space:normal}
 .srs{display:grid;gap:2px;margin:4px 0 4px}
-.sr{display:grid;grid-template-columns:44px 64px minmax(0,1fr);gap:10px;align-items:center;padding:5px 8px;border-radius:8px;font-size:13px}
+.sr{display:grid;grid-template-columns:52px 64px minmax(0,1fr);gap:10px;align-items:center;padding:5px 8px;border-radius:8px;font-size:13px}
 .sr.hit{background:color-mix(in srgb,var(--neg) 8%,transparent)}
 .sr-h{font-size:11px;font-weight:500;color:var(--muted);padding-block:0 2px}
 .sr-n{font-weight:600}
@@ -369,9 +401,26 @@ footer{font-size:12px;color:var(--muted);padding:20px 0 36px;border-top:1px soli
 <nav class="filterbar" aria-label="Filters">
   <div class="wrap">
     <div class="fg"><span>Market</span><div class="seg" id="fMarket"></div></div>
-    <div class="fg"><span>Period</span><div class="seg" id="fRange">
-      <button type="button" data-v="all">All</button><button type="button" data-v="ytd">YTD</button><button type="button" data-v="90">90D</button><button type="button" data-v="30">30D</button><button type="button" data-v="mtd">This month</button>
-    </div></div>
+    <div class="fg rulefg"><span>Period</span>
+      <button type="button" class="rulechip" id="periodBtn" aria-expanded="false" aria-controls="periodPop"></button>
+      <div class="rulepop periodpop" id="periodPop" hidden>
+        <div class="pp-sec"><span class="pp-l">Quick</span><div class="seg" id="fRange">
+          <button type="button" data-v="all">All time</button><button type="button" data-v="ytd">YTD</button><button type="button" data-v="mtd">This month</button><button type="button" data-v="30">30 days</button><button type="button" data-v="90">90 days</button>
+        </div></div>
+        <div class="pp-row">
+          <div class="field"><label for="pYear">Year</label><select id="pYear"></select></div>
+          <div class="field"><label for="pMonth">Month</label><select id="pMonth"></select></div>
+        </div>
+        <div class="pp-sec"><span class="pp-l">Custom range</span>
+          <div class="pp-row">
+            <div class="field"><label for="pFrom">From</label><input id="pFrom" type="date"></div>
+            <div class="field"><label for="pTo">To</label><input id="pTo" type="date"></div>
+          </div>
+          <button type="button" class="pp-apply" id="pApply">Apply range</button>
+          <p class="note" id="pErr"></p>
+        </div>
+      </div>
+    </div>
     <div class="fg"><span>Direction</span><div class="seg" id="fDir">
       <button type="button" data-v="all">Both</button><button type="button" data-v="BUY">Buy</button><button type="button" data-v="SELL">Sell</button>
     </div></div>
@@ -415,7 +464,7 @@ const CONFIG = {
   screenshotFolder: "screenshots",    // image files named in the Screenshot column live here
   cumulativeYears: 10,                // how many years the Cumulative R table shows
   targetR: 30,                        // goal for the "Time to +30R" card
-  streakLevels: [10, 15, 20, 25],     // rows on the "Losses in a row" card
+  streakBands: [[11, 15], [16, 20], [21, 25], [26, 30]],   // rows on the "Losses in a row" card (runs longer than the last band get their own row)
   contractSizes: { XAUUSD: 100, GBPUSD: 100000, EURUSD: 100000, ETHUSD: 1, BTCUSD: 1 }, // units per 1 lot (check your broker)
   refreshMinutes: 5,
   // Access code: visit your site with ?makecode at the end of the address to create the line below. null = no code.
@@ -611,14 +660,67 @@ function buildFilters() {
   const uniq = k => [...new Set(state.trades.map(t => t[k]).filter(v => v && v !== "—"))];
   const order = ["Asia", "London", "New York"];
   segButtons("#fMarket", uniq("market").sort(), "market");
+  buildPeriodOptions();
   segButtons("#fSession", uniq("session").sort((a, b) => ((order.indexOf(a) + 1) || 99) - ((order.indexOf(b) + 1) || 99) || a.localeCompare(b)), "session");
   syncFilterUI();
 }
-const FILTERS = [["#fMarket", "market"], ["#fRange", "range"], ["#fDir", "dir"], ["#fSession", "session"]];
+const FILTERS = [["#fMarket", "market"], ["#fDir", "dir"], ["#fSession", "session"]];
 function syncFilterUI() {
   FILTERS.forEach(([id, k]) => $(id).querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", b.dataset.v === state.f[k])));
+  paintPeriod();
   $("#resetF").hidden = isAll();
 }
+/* ---------- period picker ---------- */
+const parseYMD = v => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(v || ""); return m ? new Date(+m[1], +m[2] - 1, +m[3]) : null; };
+const shortD = d => MONTHS[d.getMonth()].slice(0, 3) + " " + d.getDate() + ", " + d.getFullYear();
+function periodBounds(r) {
+  const now = new Date(); let from = null, to = null;
+  if (r === "ytd") from = new Date(now.getFullYear(), 0, 1);
+  else if (r === "mtd") from = new Date(now.getFullYear(), now.getMonth(), 1);
+  else if (r === "30" || r === "90") { from = new Date(now); from.setHours(0, 0, 0, 0); from.setDate(from.getDate() - (+r) + 1); }
+  else if (/^y:\d{4}$/.test(r)) { const y = +r.slice(2); from = new Date(y, 0, 1); to = new Date(y + 1, 0, 1); }
+  else if (/^m:\d{4}-\d{2}$/.test(r)) { const y = +r.slice(2, 6), m = +r.slice(7) - 1; from = new Date(y, m, 1); to = new Date(y, m + 1, 1); }
+  else if (r.startsWith("r:")) { const [a, b] = r.slice(2).split("|"); from = parseYMD(a); const e = parseYMD(b); if (e) { to = new Date(e); to.setDate(to.getDate() + 1); } }
+  return { from, to };   // to is exclusive
+}
+function periodLabel(r) {
+  if (r === "all") return "All time"; if (r === "ytd") return "Year to date"; if (r === "mtd") return "This month";
+  if (r === "30" || r === "90") return "Last " + r + " days";
+  if (r.startsWith("y:")) return r.slice(2);
+  if (r.startsWith("m:")) return MONTHS[+r.slice(7) - 1] + " " + r.slice(2, 6);
+  if (r.startsWith("r:")) { const [a, b] = r.slice(2).split("|"), A = parseYMD(a), B = parseYMD(b); return (A ? shortD(A) : "Start") + " – " + (B ? shortD(B) : "Today"); }
+  return "All time";
+}
+function buildPeriodOptions() {
+  const ds = state.trades.map(t => t.date);
+  const years = [...new Set(ds.map(d => d.getFullYear()))].sort((a, b) => b - a);
+  const months = [...new Set(ds.map(d => d.getFullYear() * 12 + d.getMonth()))].sort((a, b) => b - a);
+  $("#pYear").innerHTML = `<option value="">Choose a year</option>` + years.map(y => `<option value="y:${y}">${y}</option>`).join("");
+  $("#pMonth").innerHTML = `<option value="">Choose a month</option>` + months.map(k => { const y = Math.floor(k / 12), m = k % 12; return `<option value="m:${y}-${pad(m + 1)}">${MONTHS[m]} ${y}</option>`; }).join("");
+  if (ds.length) { const mn = new Date(Math.min(...ds)), mx = new Date(Math.max(...ds)); $("#pFrom").min = $("#pTo").min = ymd(mn); $("#pFrom").max = $("#pTo").max = ymd(new Date(Math.max(+mx, Date.now()))); }
+}
+function paintPeriod() {
+  const r = state.f.range || "all";
+  $("#periodBtn").innerHTML = (r !== "all" ? "<i></i>" : "") + esc(periodLabel(r)) + ' <span class="caret">▾</span>';
+  $("#periodBtn").classList.toggle("on", r !== "all");
+  $("#fRange").querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", b.dataset.v === r));
+  $("#pYear").value = r.startsWith("y:") ? r : ""; $("#pMonth").value = r.startsWith("m:") ? r : "";
+  if (r.startsWith("r:")) { const [a, b] = r.slice(2).split("|"); $("#pFrom").value = a || ""; $("#pTo").value = b || ""; }
+}
+function setPeriod(r) { state.f.range = r; store("tj-filters", state.f); $("#periodPop").hidden = true; $("#periodBtn").setAttribute("aria-expanded", false); syncFilterUI(); render(false); }
+$("#periodBtn").onclick = e => { e.stopPropagation(); $("#rulePop").hidden = true; const p = $("#periodPop"); p.hidden = !p.hidden; $("#periodBtn").setAttribute("aria-expanded", !p.hidden); $("#pErr").textContent = ""; };
+$("#periodPop").addEventListener("click", e => e.stopPropagation());
+document.addEventListener("click", () => { $("#periodPop").hidden = true; $("#periodBtn").setAttribute("aria-expanded", false); });
+addEventListener("keydown", e => { if (e.key === "Escape") $("#periodPop").hidden = true; });
+$("#fRange").addEventListener("click", e => { const b = e.target.closest("button"); if (b) setPeriod(b.dataset.v); });
+$("#pYear").onchange = e => { if (e.target.value) setPeriod(e.target.value); };
+$("#pMonth").onchange = e => { if (e.target.value) setPeriod(e.target.value); };
+$("#pApply").onclick = () => {
+  const a = $("#pFrom").value, b = $("#pTo").value;
+  if (!a && !b) { $("#pErr").textContent = "Pick a start date, an end date, or both."; return; }
+  if (a && b && a > b) { $("#pErr").textContent = "The start date is after the end date."; return; }
+  setPeriod("r:" + a + "|" + b);
+};
 FILTERS.forEach(([id, k]) => $(id).addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; state.f[k] = b.dataset.v; store("tj-filters", state.f); syncFilterUI(); render(false); }));
 $("#resetF").onclick = () => { state.f = { ...DEFAULT_F }; store("tj-filters", state.f); syncFilterUI(); render(false); };
 /* ---------- recovery rule UI ---------- */
@@ -636,7 +738,7 @@ function paintRule() {
   } else bar.hidden = true;
 }
 function ruleChanged() { store("tj-rule", state.rule); applyRule(); paintRule(); render(false); }
-$("#ruleBtn").onclick = e => { e.stopPropagation(); const p = $("#rulePop"); p.hidden = !p.hidden; $("#ruleBtn").setAttribute("aria-expanded", !p.hidden); };
+$("#ruleBtn").onclick = e => { e.stopPropagation(); $("#periodPop") && ($("#periodPop").hidden = true); const p = $("#rulePop"); p.hidden = !p.hidden; $("#ruleBtn").setAttribute("aria-expanded", !p.hidden); };
 $("#rulePop").addEventListener("click", e => e.stopPropagation());
 document.addEventListener("click", () => { $("#rulePop").hidden = true; $("#ruleBtn").setAttribute("aria-expanded", false); });
 addEventListener("keydown", e => { if (e.key === "Escape") $("#rulePop").hidden = true; });
@@ -648,12 +750,9 @@ $("#ruleOn").onchange = e => { state.rule.on = e.target.checked; ruleChanged(); 
 paintRule();
 const isAll = () => Object.keys(DEFAULT_F).every(k => state.f[k] === "all");
 function filtered() {
-  const now = new Date(); let from = null; const f = state.f;
-  if (f.range === "ytd") from = new Date(now.getFullYear(), 0, 1);
-  else if (f.range === "mtd") from = new Date(now.getFullYear(), now.getMonth(), 1);
-  else if (f.range === "30" || f.range === "90") { from = new Date(now); from.setHours(0, 0, 0, 0); from.setDate(from.getDate() - (+f.range) + 1); }
+  const f = state.f, { from, to } = periodBounds(f.range || "all");
   return state.trades.filter(t => (f.market === "all" || t.market === f.market) && (f.dir === "all" || t.direction === f.dir)
-    && (f.session === "all" || t.session === f.session) && (!from || t.date >= from));
+    && (f.session === "all" || t.session === f.session) && (!from || t.date >= from) && (!to || t.date < to));
 }
 
 /* ---------- stats ---------- */
@@ -689,7 +788,7 @@ function countUp(el, to, fmt, ms = 900) {
 
 /* ---------- render ---------- */
 function render(animate) {
-  paintRule();
+  paintRule(); if (typeof hideTip === "function") hideTip();
   if (!state.trades.length) {
     $("#count").textContent = "";
     if (!$("#status .dot.err")) showMsg(`<div class="empty"><h2>No trades yet</h2><div>Log your first trade in <code>${esc(CONFIG.file)}</code> (Date and Result), save, and push it to GitHub.</div></div>`);
@@ -772,13 +871,15 @@ function streakCard(ts) {
   const longest = runs.reduce((m, r) => Math.max(m, r.len), 0);
   const fd = (d, y) => MONTHS[d.getMonth()].slice(0, 3) + " " + d.getDate() + (y ? ", " + d.getFullYear() : "");
   const span = r => r.from.getFullYear() === r.to.getFullYear() ? `${fd(r.from)} – ${fd(r.to, 1)}` : `${fd(r.from, 1)} – ${fd(r.to, 1)}`;
-  const rows = CONFIG.streakLevels.map(N => {
-    const hits = runs.filter(r => r.len >= N), last = hits[hits.length - 1];
+  const bands = CONFIG.streakBands.map(b => b.slice()), top = bands[bands.length - 1][1];
+  if (longest > top) bands.push([top + 1, Infinity]);
+  const rows = bands.map(([lo, hi]) => {
+    const hits = runs.filter(r => r.len >= lo && r.len <= hi), last = hits[hits.length - 1];
     return `<div class="sr ${hits.length ? "hit" : ""}" title="${hits.map(r => `${r.len} SL: ${span(r)}`).join("\n") || "Never happened"}">
-      <span class="sr-n">${N}+</span><b class="${hits.length ? "neg" : "pos"}">${hits.length ? hits.length + "×" : "Never"}</b>
+      <span class="sr-n">${hi === Infinity ? lo + "+" : lo + "–" + hi}</span><b class="${hits.length ? "neg" : "pos"}">${hits.length ? hits.length + "×" : "Never"}</b>
       <span class="sr-d">${last ? span(last) + (last === ongoing ? " · still going" : "") : "–"}</span></div>`;
   }).join("");
-  const worst = CONFIG.streakLevels.filter(N => longest >= N).pop();
+  const worst = longest >= CONFIG.streakBands[0][0];
   return `<div class="card span2" style="--accent:${worst ? "var(--neg)" : "var(--pos)"}"><div class="k">Losses in a row</div>
     <div class="srs"><div class="sr sr-h"><span>Run</span><span>Times</span><span>Most recent</span></div>${rows}</div>
     <div class="h">Longest run <b class="${longest ? "neg" : ""}">${longest} SL</b>${ongoing ? ` · currently on <b class="neg">${ongoing.len} SL</b> in a row` : " · no losing run active"} · breakevens don't break a run</div></div>`;
@@ -867,6 +968,7 @@ function renderCards(ts) {
   ];
   $("#cards").innerHTML = C.map((c, i) => `<div class="card" style="--accent:${c.a}"><div class="k">${c.k}</div>${c.html ?? `<div class="v ${c.c || ""}" id="cv${i}">${c.t ?? c.f(c.n)}</div><div class="h">${c.h || "&nbsp;"}</div>`}${c.meter ? `<div class="meter" title="Tick marks the ${pct(be)} break-even win rate"><i id="wrMeter" style="background:${edge != null && edge >= 0 ? "var(--pos)" : "var(--neg)"}"></i><b style="left:calc(${be * 100}% - 1px)"></b></div>` : ""}</div>`).join("") + breakCard(ts) + dayLossCard(ts) + streakCard(ts) + avgYearCard(ts) + curRunCard(ts) + goalCard(ts);
   C.forEach((c, i) => { if (c.t == null && c.n != null) countUp($("#cv" + i), c.n, c.f); });
+  hideTip(); wireTips(ts);
   requestAnimationFrame(() => requestAnimationFrame(() => { const m = $("#wrMeter"); if (m) m.style.width = Math.min(100, (s.winRate || 0) * 100) + "%"; }));
 }
 const dash = n => n ? n : "–";
@@ -1238,6 +1340,167 @@ function startPresence() {
     });
   }).catch(() => {});
 }
+
+
+/* ================= CARD DETAIL PANELS (hover / tap) ================= */
+const T_ = {
+  fd: d => MONTHS[d.getMonth()].slice(0, 3) + " " + d.getDate() + ", " + d.getFullYear(),
+  mk: k => MONTHS[k % 12].slice(0, 3) + " " + Math.floor(k / 12),
+  usd: r => { const u = (state.risk.balance || 0) * (state.risk.riskPct || 0) / 100; return u ? money(r * u) : null; },
+  tbl: (head, rows) => `<table>${head ? `<thead><tr>${head.map(h => `<th>${h}</th>`).join("")}</tr></thead>` : ""}<tbody>${rows.map(r => `<tr>${r.map(c => `<td${Array.isArray(c) ? ` class="${c[1]}"` : ""}>${Array.isArray(c) ? c[0] : c}</td>`).join("")}</tr>`).join("")}</tbody></table>`,
+  R: v => [fmtR(v, true), rCls(v)],
+  box: (title, sub, body, note) => `<h4>${title}</h4>${sub ? `<p class="tip-sub">${sub}</p>` : ""}${body}${note ? `<p class="tip-note">${note}</p>` : ""}`,
+  h: t => `<div class="tip-h">${t}</div>`,
+  per: () => periodLabel(state.f.range || "all") + (isAll() ? "" : " · filtered")
+};
+function runsOf(c) {
+  const out = []; let cur = null, w = null;
+  for (const t of c) {
+    if (t.result === "SL") { if (!cur) cur = { len: 0, from: t.date, to: t.date, r: 0 }; cur.len++; cur.to = t.date; cur.r += t.r; }
+    else if (t.result === "TP") { if (cur) out.push(cur); cur = null; }
+  }
+  if (cur) { cur.ongoing = true; out.push(cur); }
+  return out;
+}
+function winRuns(c) {
+  const out = []; let cur = null;
+  for (const t of c) { if (t.result === "TP") { if (!cur) cur = { len: 0, from: t.date, to: t.date }; cur.len++; cur.to = t.date; } else if (t.result === "SL") { if (cur) out.push(cur); cur = null; } }
+  if (cur) { cur.ongoing = true; out.push(cur); } return out;
+}
+function cardTips(ts) {
+  const c = ts.filter(t => t.closed), s = stats(ts), be = bePct(), mk = groupKeys(c, "market");
+  const byMk = mk.map(m => ({ m, s: stats(c.filter(t => t.market === m)) }));
+  const usdLine = r => { const u = T_.usd(r); return u ? ` (${u} at ${money((state.risk.balance || 0) * (state.risk.riskPct || 0) / 100)} per R)` : ""; };
+  const months = new Map(); c.forEach(t => { const k = t.date.getFullYear() * 12 + t.date.getMonth(); months.set(k, (months.get(k) || 0) + t.r); });
+  const mList = [...months.entries()];
+  const sumR = res => c.filter(t => t.result === res).reduce((a, t) => a + t.r, 0);
+  const tips = {};
+
+  tips["Net result"] = T_.box("Net result", T_.per(), T_.tbl(["Result", "Trades", "R"], [
+      ["TP", s.wins, T_.R(sumR("TP"))], ["SL", s.losses, T_.R(sumR("SL"))], ["BE", s.be, T_.R(sumR("BE"))], ["<b>Net</b>", s.n, T_.R(s.net)]])
+    + (byMk.length > 1 ? T_.h("By market") + T_.tbl(null, byMk.map(x => [x.m, x.s.n + " trades", T_.R(x.s.net)])) : ""),
+    `Sum of the R of every closed trade${usdLine(s.net)}. Open trades count as 0 until they get a result.`);
+
+  const last = n => { const l = c.slice(-n); const w = l.filter(t => t.result === "TP").length; return l.length ? pct(w / l.length) + ` (${w}/${l.length})` : "—"; };
+  tips["Win rate"] = T_.box("Win rate", T_.per(), T_.tbl(null, [
+      ["Wins (TP)", s.wins], ["Losses (SL)", s.losses], ["Breakevens (BE)", s.be], ["Win rate", [pct(s.winRate) || "—", s.winRate != null && s.winRate >= be ? "pos" : "neg"]],
+      ["Break-even win rate", pct(be)], ["Edge", s.winRate == null ? "—" : [(s.winRate >= be ? "+" : "−") + Math.abs((s.winRate - be) * 100).toFixed(1) + " pts", s.winRate >= be ? "pos" : "neg"]],
+      ["Last 20 trades", last(20)], ["Last 50 trades", last(50)]])
+    + (byMk.length > 1 ? T_.h("By market") + T_.tbl(null, byMk.map(x => [x.m, `${x.s.wins}/${x.s.n}`, [pct(x.s.winRate), x.s.winRate >= be ? "pos" : "neg"]])) : ""),
+    `Wins ÷ closed trades (BE counts as not a win). At 1:${CONFIG.rValues.TP} you break even with ${pct(be)} wins; the tick on the bar marks that level.`);
+
+  tips["Net R by market"] = T_.box("Net R by market", T_.per(), T_.tbl(["Market", "Trades", "Win %", "PF", "Net R"],
+      byMk.map(x => [x.m, x.s.n, pct(x.s.winRate), x.s.pf == null ? "—" : x.s.pf === Infinity ? "∞" : x.s.pf.toFixed(2), T_.R(x.s.net)])),
+    "PF = profit factor (R won ÷ R lost). The card shows your three largest markets.");
+
+  tips["Expectancy"] = T_.box("Expectancy", T_.per(), T_.tbl(null, [["Net R", T_.R(s.net)], ["Closed trades", s.n], ["Per trade", s.exp == null ? "—" : T_.R(s.exp)], ...(T_.usd(1) && s.exp != null ? [["Per trade in $", T_.usd(s.exp)]] : []), ["Per 10 trades", s.exp == null ? "—" : T_.R(s.exp * 10)]])
+    + (byMk.length > 1 ? T_.h("By market") + T_.tbl(null, byMk.map(x => [x.m, T_.R(x.s.exp || 0)])) : ""),
+    "What an average trade has earned you: net R ÷ closed trades. Positive means your system makes money over time.");
+
+  tips["Profit factor"] = T_.box("Profit factor", T_.per(), T_.tbl(null, [["R won (TP + BE)", T_.R(s.gw)], ["R lost (SL)", T_.R(-s.gl)], ["Profit factor", s.pf == null ? "—" : s.pf === Infinity ? "∞" : s.pf.toFixed(2) + "x"]])
+    + (byMk.length > 1 ? T_.h("By market") + T_.tbl(null, byMk.map(x => [x.m, [x.s.pf == null ? "—" : x.s.pf === Infinity ? "∞" : x.s.pf.toFixed(2) + "x", x.s.pf >= 1 ? "pos" : "neg"]])) : ""),
+    "R won ÷ R lost. Above 1.00x is profitable; 2.00x means you made 2R for every 1R lost.");
+
+  // drawdown details
+  { let eq = 0, peak = 0, peakAt = null, best = { dd: 0 }, curStart = null;
+    c.forEach(t => { eq += t.r; if (eq > peak) { peak = eq; peakAt = t.date; } const dd = peak - eq; if (dd > best.dd) best = { dd, peak, peakAt, trough: eq, troughAt: t.date }; });
+    let rec = null; if (best.dd) { let e = 0, past = false; for (const t of c) { e += t.r; if (t.date >= best.troughAt) past = true; if (past && e >= best.peak) { rec = t.date; break; } } }
+    const bal = state.risk.balance || 0, u = T_.usd(1) ? (state.risk.balance || 0) * (state.risk.riskPct || 0) / 100 : 0;
+    tips["Max drawdown"] = T_.box("Max drawdown", T_.per(), best.dd ? T_.tbl(null, [
+        ["Peak", `${fmtR(best.peak, true)}${best.peakAt ? " · " + T_.fd(best.peakAt) : " · start"}`], ["Low point", `${fmtR(best.trough, true)} · ${T_.fd(best.troughAt)}`],
+        ["Drop", [fmtR(-best.dd), "neg"]], ["Recovered", rec ? T_.fd(rec) : "not yet"], ["Now below peak", [fmtR(-s.curDD), s.curDD ? "neg" : "zero"]],
+        ...(u ? [["In $", money(-best.dd * u)], ["% of balance", bal ? pct(best.dd * u / bal) : "—"]] : [])]) : "<p class='tip-sub'>No drawdown in this view.</p>",
+      "Biggest fall in your running total from a high point to a later low. It can span several losing streaks if a win in between didn't reach a new high.");
+  }
+
+  const srt = mList.slice().sort((a, b) => b[1] - a[1]);
+  tips["Best / worst month"] = T_.box("Best / worst month", T_.per(),
+    T_.h("Best months") + T_.tbl(null, srt.slice(0, 3).map(([k, v]) => [T_.mk(k), T_.R(v)])) + T_.h("Worst months") + T_.tbl(null, srt.slice(-3).reverse().map(([k, v]) => [T_.mk(k), T_.R(v)]))
+    + T_.tbl(null, [["Months traded", mList.length], ["Positive months", mList.length ? `${mList.filter(x => x[1] > 0).length} (${pct(mList.filter(x => x[1] > 0).length / mList.length)})` : "—"], ["Average month", mList.length ? T_.R(mList.reduce((a, x) => a + x[1], 0) / mList.length) : "—"]]),
+    "Net R per calendar month, only months with closed trades.");
+
+  { const lr = runsOf(c), wr = winRuns(c), lL = lr.reduce((m, r) => r.len > m.len ? r : m, { len: 0 }), lW = wr.reduce((m, r) => r.len > m.len ? r : m, { len: 0 });
+    const avgL = lr.length ? lr.reduce((a, r) => a + r.len, 0) / lr.length : 0;
+    tips["Streaks"] = T_.box("Streaks", T_.per(), T_.tbl(null, [
+        ["Longest win run", lW.len ? `${lW.len} TP · ${T_.fd(lW.from)}${lW.len > 1 ? " – " + T_.fd(lW.to) : ""}` : "—"],
+        ["Longest losing run", lL.len ? `${lL.len} SL · ${T_.fd(lL.from)} – ${T_.fd(lL.to)}` : "—"],
+        ["Average losing run", avgL ? avgL.toFixed(1) + " SL" : "—"], ["Losing runs", lr.length],
+        ["Right now", s.curL ? [`${s.curL} SL in a row`, "neg"] : s.curW ? [`${s.curW} TP in a row`, "pos"] : "—"]]),
+      "Breakevens are skipped: they neither extend nor break a run.");
+  }
+
+  { const DAY = 86400000, d0 = d => +new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    const days = [...new Set(ts.map(t => d0(t.date)))].sort((a, b) => a - b), gaps = [];
+    for (let i = 1; i < days.length; i++) { const n = Math.round((days[i] - days[i - 1]) / DAY) - 1; if (n > 0) gaps.push({ n, from: days[i - 1] + DAY, to: days[i] - DAY }); }
+    const today = d0(new Date()); if (days.length && today > days[days.length - 1]) gaps.push({ n: Math.round((today - days[days.length - 1]) / DAY), from: days[days.length - 1] + DAY, to: today, ongoing: true });
+    gaps.sort((a, b) => b.n - a.n);
+    tips["Longest break"] = T_.box("Longest breaks", T_.per(), T_.tbl(["Days", "From – to"], gaps.slice(0, 5).map(g => [g.n + (g.ongoing ? " · now" : ""), `${T_.fd(new Date(g.from))} – ${T_.fd(new Date(g.to))}`]))
+      + T_.tbl(null, [["Days with a trade", days.length], ["Average gap", gaps.length ? (gaps.reduce((a, g) => a + g.n, 0) / gaps.length).toFixed(1) + " days" : "—"]]),
+      "Calendar days in a row with no trade logged, including weekends.");
+  }
+
+  { const dm = new Map(); c.forEach(t => { const k = ymd(t.date); const d = dm.get(k) || { sl: 0, n: 0, r: 0, date: t.date }; d.n++; d.r += t.r; if (t.result === "SL") d.sl++; dm.set(k, d); });
+    const dl = [...dm.values()].filter(d => d.sl).sort((a, b) => b.sl - a.sl || b.date - a.date);
+    const cnt = n => [...dm.values()].filter(d => d.sl >= n).length;
+    tips["Most SL in one day"] = T_.box("Worst losing days", T_.per(), T_.tbl(["Day", "SL", "Trades", "Net"], dl.slice(0, 6).map(d => [T_.fd(d.date), d.sl, d.n, T_.R(d.r)]))
+      + T_.tbl(null, [["Days with 2+ SL", cnt(2)], ["Days with 3+ SL", cnt(3)], ["Losing days", dl.length]]),
+      `Compare with your daily rules on the Risk page (max ${state.risk.maxTrades} trades, ${state.risk.dailyLoss}R loss limit).`);
+  }
+
+  { const lr = runsOf(c).filter(r => r.len >= CONFIG.streakBands[0][0]).sort((a, b) => b.to - a.to);
+    tips["Losses in a row"] = T_.box(`Losing runs of ${CONFIG.streakBands[0][0]}+ SL`, T_.per(),
+      lr.length ? T_.tbl(["SL", "From – to", "R"], lr.slice(0, 8).map(r => [r.len + (r.ongoing ? " · now" : ""), `${T_.fd(r.from)} – ${T_.fd(r.to)}`, T_.R(r.r)])) : "<p class='tip-sub'>None yet in this view.</p>",
+      "Each run is counted once, in the band its length falls into. A TP ends a run; breakevens don't.");
+  }
+
+  { const ys = [...new Set(c.map(t => t.date.getFullYear()))].sort((a, b) => b - a);
+    tips["Average R per year by market"] = T_.box("R per year", T_.per(), T_.tbl(["Year", ...mk, "Total"], ys.map(y => [y, ...mk.map(m => { const l = c.filter(t => t.market === m && t.date.getFullYear() === y); return l.length ? T_.R(l.reduce((a, t) => a + t.r, 0)) : "–"; }), T_.R(c.filter(t => t.date.getFullYear() === y).reduce((a, t) => a + t.r, 0))])),
+      "Average = a market's total R ÷ the years you closed a trade in it. The current year counts as a full year.");
+  }
+
+  { const info = list => { let n = 0, r = 0, lastTP = null; for (let i = list.length - 1; i >= 0; i--) { const t = list[i]; if (t.result === "TP") { lastTP = t.date; break; } if (t.result === "SL") { n++; r += t.r; } } return { n, r, lastTP }; };
+    const rows = mk.map(m => [m, info(c.filter(t => t.market === m))]).concat(mk.length > 1 ? [["All markets", info(c)]] : []);
+    tips["Current losing run"] = T_.box("Current losing run", T_.per(), T_.tbl(["Market", "SL", "R", "Last TP"], rows.map(([m, x]) => [m, x.n, x.n ? T_.R(x.r) : "–", x.lastTP ? T_.fd(x.lastTP) : "none yet"])),
+      `The recovery rule switches on at ${state.rule.n} SL in a row${state.rule.on ? " (it's on)" : " (it's off)"}. "All markets" counts trades in the order you took them.`);
+  }
+
+  { const p = projection(ts, CONFIG.targetR);
+    tips["Time to +" + CONFIG.targetR + "R"] = T_.box(`Time to +${CONFIG.targetR}R`, T_.per(), p ? T_.tbl(null, [["Months of data", p.n], ["Average per month", T_.R(p.avg)], ["Best month", mList.length ? T_.R(Math.max(...mList.map(x => x[1]))) : "—"], ["Worst month", mList.length ? T_.R(Math.min(...mList.map(x => x[1]))) : "—"], ...(p.months ? [["Simple estimate", p.months + " months"], ["Fast case (10%)", p.p10 + " months"], ["Slow case (90%)", (p.capped ? "240+" : p.p90) + " months"]] : [])]) : "",
+      `Simple estimate = ${CONFIG.targetR}R ÷ average month (months with no trades count as 0). The range replays your real months in random order 2,000 times.`);
+  }
+  return tips;
+}
+let tipEl = null, tipCard = null;
+function placeTip(card) {
+  const r = card.getBoundingClientRect(), w = tipEl.offsetWidth, h = tipEl.offsetHeight, m = 12;
+  let left = Math.min(Math.max(m, r.left + r.width / 2 - w / 2), innerWidth - w - m);
+  let top = r.bottom + 8; if (top + h > innerHeight - m) top = Math.max(m, r.top - h - 8);
+  tipEl.style.left = left + "px"; tipEl.style.top = top + "px";
+}
+function showTip(card, touch) {
+  if (!card || !card.dataset.tip) return;
+  if (!tipEl) { tipEl = document.createElement("div"); tipEl.className = "cardtip"; tipEl.setAttribute("role", "tooltip"); document.body.appendChild(tipEl); }
+  if (tipCard && tipCard !== card) tipCard.classList.remove("tip-on");
+  tipCard = card; card.classList.add("tip-on");
+  tipEl.innerHTML = state.cardTips[card.dataset.tip] || ""; tipEl.classList.toggle("touch", !!touch);
+  placeTip(card); tipEl.classList.add("on");
+}
+function hideTip() { if (tipEl) tipEl.classList.remove("on"); if (tipCard) tipCard.classList.remove("tip-on"); tipCard = null; }
+function wireTips(ts) {
+  state.cardTips = cardTips(ts);
+  document.querySelectorAll("#cards .card").forEach(card => {
+    const k = card.querySelector(".goal-main .k, :scope > .k"); const key = k ? k.textContent.trim() : "";
+    if (state.cardTips[key]) { card.dataset.tip = key; card.classList.add("has-tip"); card.tabIndex = 0; card.setAttribute("aria-label", key + ": press Enter for details"); }
+    card.querySelectorAll("[title]").forEach(el => el.removeAttribute("title"));
+  });
+}
+document.addEventListener("pointerover", e => { if (e.pointerType === "touch") return; const card = e.target.closest && e.target.closest("#cards .card.has-tip"); if (card) { if (card !== tipCard) showTip(card); } else if (tipCard && !(e.target.closest && e.target.closest(".cardtip"))) hideTip(); });
+document.addEventListener("pointerup", e => { if (e.pointerType !== "touch") return; const card = e.target.closest && e.target.closest("#cards .card.has-tip"); if (card) { card === tipCard ? hideTip() : showTip(card, true); } else if (!(e.target.closest && e.target.closest(".cardtip"))) hideTip(); });
+document.addEventListener("focusin", e => { const card = e.target.closest && e.target.closest("#cards .card.has-tip"); if (card) showTip(card); });
+document.addEventListener("focusout", e => { if (e.target.closest && e.target.closest("#cards .card.has-tip")) hideTip(); });
+addEventListener("keydown", e => { if (e.key === "Escape") hideTip(); });
+addEventListener("scroll", () => { if (tipCard) placeTip(tipCard); }, { passive: true });
+addEventListener("resize", hideTip);
 
 /* ---------- start ---------- */
 state.view = VIEWS.includes(location.hash.slice(1)) ? location.hash.slice(1) : "cards";
